@@ -9,7 +9,7 @@ JS, HTML - фронтенд слой, GUI проекта
 
 # Схема проекта:
 
-'''
+```
   
   ====FRONTEND====  |            ====HTTP=INTEGRATION=UNIT====           |         ====BACKEND====
   
@@ -21,4 +21,4 @@ JS, HTML - фронтенд слой, GUI проекта
   
   User -> Graphical interface -> Http in -> Http server processing -> Sintax manipulating -> 
               -> Translating -> Http server processing -> Http out -> Graphical interface -> User
-'''
+```
