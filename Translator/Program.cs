@@ -1,2 +1,9 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿Console.WriteLine("Hello, World!");
+
+public static class TranslatorProgram
+{
+    public static string Translate(string code)
+    {
+        return "// TODO: implement";
+    }
+}
