@@ -10,7 +10,7 @@
 <body>
     <div class="container">
         <!-- Заголовок большими буквами в левом верхнем углу -->
-        <h1 class="header-title">Content Studio</h1>
+        <h1 class="header-title">Kotlin++</h1>
 
         <!-- 4 кнопки: Load File, Load Archive, Translate, Download -->
         <div class="buttons-row">
@@ -24,14 +24,14 @@
         <div class="panels">
             <!-- Левая ячейка (источник для Translate) -->
             <div class="panel">
-                <div class="panel-header">📄 SOURCE AREA</div>
-                <textarea class="text-box" id="leftText" placeholder="Enter your text here...&#10;Then press Translate (button becomes active when field is not empty)&#10;Content will be copied to the right panel."></textarea>
+                <div class="panel-header">📄 Kotlin Code </div>
+                <textarea class="text-box" id="leftText" placeholder="Type or paste your kotlin code here...&#10;Then press Translate"></textarea>
             </div>
 
             <!-- Правая ячейка (цель для Translate) -->
             <div class="panel">
-                <div class="panel-header">📄 DESTINATION AREA</div>
-                <textarea class="text-box" id="rightText" placeholder="Translated / copied text appears here...&#10;You can also edit this field manually.&#10;Click Download to save as .cpp file."></textarea>
+                <div class="panel-header">📄 C++ Code </div>
+                <textarea class="text-box" id="rightText" placeholder="Translated text appears here...&#10;You can also edit this field manually.&#10;Click Download to save this as .cpp file."></textarea>
             </div>
         </div>
     </div>
@@ -45,7 +45,7 @@
     <!-- Центрированное уведомление (зеленое - успешное сохранение) -->
     <div id="successToast" class="toast-notification toast-success">
         <span class="toast-icon">✅</span>
-        <span class="toast-message">file saved successfully</span>
+        <span class="toast-message">file was saved successfully</span>
     </div>
 
     <!-- Модальное окно для ввода имени файла (.cpp) -->
