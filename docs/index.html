@@ -3,34 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Текстовые блоки с кнопками</title>
+    <title>Управление текстом | Транслятор и загрузка</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <!-- Заголовок большими буквами в левом верхнем углу -->
-        <h1 class="header-title">Текстовый редактор</h1>
+        <h1 class="header-title">Управление контентом</h1>
 
-        <!-- 4 кнопки в одном горизонтальном ряду -->
+        <!-- 4 кнопки: Load File, Load Archive, Translate, Download -->
         <div class="buttons-row">
-            <button class="btn" id="clearLeftBtn">Очистить левую</button>
-            <button class="btn" id="clearRightBtn">Очистить правую</button>
-            <button class="btn" id="copyLeftToRightBtn">Копировать левую → правую</button>
-            <button class="btn" id="swapBtn">Обменять содержимое</button>
+            <button class="btn" id="loadFileBtn">Load File</button>
+            <button class="btn" id="loadArchiveBtn">Load Archive</button>
+            <button class="btn btn-translate" id="translateBtn">Translate</button>
+            <button class="btn" id="downloadBtn">Download</button>
         </div>
 
-        <!-- Две большие ячейки для текста -->
+        <!-- Две большие ячейки для текста (безразмерные, расширяются вниз) -->
         <div class="panels">
-            <!-- Левая ячейка -->
+            <!-- Левая ячейка (источник для Translate) -->
             <div class="panel">
-                <div class="panel-header">📄 ЛЕВАЯ ОБЛАСТЬ</div>
-                <textarea class="text-box" id="leftText" placeholder="Введите любой текст здесь...&#10;Это поле автоматически расширяется вниз.&#10;Можете писать сколько угодно строк!"></textarea>
+                <div class="panel-header">📄 ЛЕВАЯ ОБЛАСТЬ (ИСХОДНЫЙ ТЕКСТ)</div>
+                <textarea class="text-box" id="leftText" placeholder="Введите текст сюда...&#10;Затем нажмите Translate (когда поле не пустое)&#10;Текст скопируется в правую область."></textarea>
             </div>
 
-            <!-- Правая ячейка -->
+            <!-- Правая ячейка (цель для Translate) -->
             <div class="panel">
-                <div class="panel-header">📄 ПРАВАЯ ОБЛАСТЬ</div>
-                <textarea class="text-box" id="rightText" placeholder="Вторая зона для записей...&#10;Поле тоже растёт вниз.&#10;Используйте кнопки для управления текстом."></textarea>
+                <div class="panel-header">📄 ПРАВАЯ ОБЛАСТЬ (РЕЗУЛЬТАТ)</div>
+                <textarea class="text-box" id="rightText" placeholder="Сюда будет скопирован текст после нажатия Translate...&#10;Также сюда можно писать вручную."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Всплывающее уведомление "в процессе" (красный фон) -->
+    <div id="progressToast" class="progress-toast">⚠️ sorry, this part is in progress yet</div>
+
+    <!-- Модальное окно для ввода имени файла .cpp -->
+    <div id="filenameModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">💾 Сохранить как .cpp</span>
+                <button class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label for="filenameInput">Введите имя файла (без расширения):</label>
+                <input type="text" id="filenameInput" class="filename-input" placeholder="например: my_program" autocomplete="off">
+                <div class="modal-hint">Расширение .cpp добавится автоматически</div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel-btn" id="cancelModalBtn">Отмена</button>
+                <button class="modal-btn submit-btn" id="submitFilenameBtn">Скачать .cpp</button>
             </div>
         </div>
     </div>
