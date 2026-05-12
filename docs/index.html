@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Управление текстом | Транслятор и загрузка</title>
+    <title>Smart Tools | Translate & Download</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <!-- Заголовок большими буквами в левом верхнем углу -->
-        <h1 class="header-title">Управление контентом</h1>
+        <h1 class="header-title">Content Studio</h1>
 
         <!-- 4 кнопки: Load File, Load Archive, Translate, Download -->
         <div class="buttons-row">
@@ -23,36 +24,45 @@
         <div class="panels">
             <!-- Левая ячейка (источник для Translate) -->
             <div class="panel">
-                <div class="panel-header">📄 ЛЕВАЯ ОБЛАСТЬ (ИСХОДНЫЙ ТЕКСТ)</div>
-                <textarea class="text-box" id="leftText" placeholder="Введите текст сюда...&#10;Затем нажмите Translate (когда поле не пустое)&#10;Текст скопируется в правую область."></textarea>
+                <div class="panel-header">📄 SOURCE AREA</div>
+                <textarea class="text-box" id="leftText" placeholder="Enter your text here...&#10;Then press Translate (button becomes active when field is not empty)&#10;Content will be copied to the right panel."></textarea>
             </div>
 
             <!-- Правая ячейка (цель для Translate) -->
             <div class="panel">
-                <div class="panel-header">📄 ПРАВАЯ ОБЛАСТЬ (РЕЗУЛЬТАТ)</div>
-                <textarea class="text-box" id="rightText" placeholder="Сюда будет скопирован текст после нажатия Translate...&#10;Также сюда можно писать вручную."></textarea>
+                <div class="panel-header">📄 DESTINATION AREA</div>
+                <textarea class="text-box" id="rightText" placeholder="Translated / copied text appears here...&#10;You can also edit this field manually.&#10;Click Download to save as .cpp file."></textarea>
             </div>
         </div>
     </div>
 
-    <!-- Всплывающее уведомление "в процессе" (красный фон) -->
-    <div id="progressToast" class="progress-toast">⚠️ sorry, this part is in progress yet</div>
+    <!-- Центрированное уведомление (красное - in progress) -->
+    <div id="progressToast" class="toast-notification toast-error">
+        <span class="toast-icon">⚠️</span>
+        <span class="toast-message">sorry, this part is in progress yet</span>
+    </div>
 
-    <!-- Модальное окно для ввода имени файла .cpp -->
+    <!-- Центрированное уведомление (зеленое - успешное сохранение) -->
+    <div id="successToast" class="toast-notification toast-success">
+        <span class="toast-icon">✅</span>
+        <span class="toast-message">file saved successfully</span>
+    </div>
+
+    <!-- Модальное окно для ввода имени файла (.cpp) -->
     <div id="filenameModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="modal-title">💾 Сохранить как .cpp</span>
+                <span class="modal-title">💾 Save as C++ file</span>
                 <button class="modal-close" id="closeModalBtn">&times;</button>
             </div>
             <div class="modal-body">
-                <label for="filenameInput">Введите имя файла (без расширения):</label>
-                <input type="text" id="filenameInput" class="filename-input" placeholder="например: my_program" autocomplete="off">
-                <div class="modal-hint">Расширение .cpp добавится автоматически</div>
+                <label for="filenameInput">Enter file name (without extension):</label>
+                <input type="text" id="filenameInput" class="filename-input" placeholder="e.g., my_program" autocomplete="off">
+                <div class="modal-hint">.cpp will be added automatically</div>
             </div>
             <div class="modal-footer">
-                <button class="modal-btn cancel-btn" id="cancelModalBtn">Отмена</button>
-                <button class="modal-btn submit-btn" id="submitFilenameBtn">Скачать .cpp</button>
+                <button class="modal-btn cancel-btn" id="cancelModalBtn">Cancel</button>
+                <button class="modal-btn submit-btn" id="submitFilenameBtn">Download .cpp</button>
             </div>
         </div>
     </div>
