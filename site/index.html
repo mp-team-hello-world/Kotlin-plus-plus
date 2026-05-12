@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Текстовые блоки с кнопками</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Заголовок большими буквами в левом верхнем углу -->
+        <h1 class="header-title">Текстовый редактор</h1>
+
+        <!-- 4 кнопки в одном горизонтальном ряду -->
+        <div class="buttons-row">
+            <button class="btn" id="clearLeftBtn">Очистить левую</button>
+            <button class="btn" id="clearRightBtn">Очистить правую</button>
+            <button class="btn" id="copyLeftToRightBtn">Копировать левую → правую</button>
+            <button class="btn" id="swapBtn">Обменять содержимое</button>
+        </div>
+
+        <!-- Две большие ячейки для текста -->
+        <div class="panels">
+            <!-- Левая ячейка -->
+            <div class="panel">
+                <div class="panel-header">📄 ЛЕВАЯ ОБЛАСТЬ</div>
+                <textarea class="text-box" id="leftText" placeholder="Введите любой текст здесь...&#10;Это поле автоматически расширяется вниз.&#10;Можете писать сколько угодно строк!"></textarea>
+            </div>
+
+            <!-- Правая ячейка -->
+            <div class="panel">
+                <div class="panel-header">📄 ПРАВАЯ ОБЛАСТЬ</div>
+                <textarea class="text-box" id="rightText" placeholder="Вторая зона для записей...&#10;Поле тоже растёт вниз.&#10;Используйте кнопки для управления текстом."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
