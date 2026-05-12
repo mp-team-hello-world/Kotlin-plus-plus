@@ -1,8 +1,401 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <body>
-      
-    </body>
-  </head>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Текстовые блоки с кнопками</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background: #f5f7fb;
+            min-height: 100vh;
+            padding: 24px 28px 40px 28px;
+        }
+
+        /* ГЛАВНЫЙ КОНТЕЙНЕР — ограничиваем максимальную ширину для больших экранов,
+           но кнопки и ячейки остаются широкими и адаптивными */
+        .app-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* ========= ЗАГОЛОВОК БОЛЬШИМИ БУКВАМИ ========= */
+        .main-title {
+            font-size: 3.2rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;   /* ВСЕ БОЛЬШИЕ БУКВЫ */
+            color: #1e2a3e;
+            margin-bottom: 32px;
+            text-align: left;            /* чётко левый верхний угол */
+            line-height: 1.2;
+            border-left: 6px solid #3b82f6;
+            padding-left: 20px;
+            background: linear-gradient(135deg, #1e293b 0%, #2d3a4a 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: #0f172a;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.03);
+        }
+
+        /* Улучшенный вариант для больших букв без градиента — четко читаемо */
+        @media (max-width: 640px) {
+            .main-title {
+                font-size: 2.2rem;
+                padding-left: 16px;
+            }
+            body {
+                padding: 20px 18px 32px 18px;
+            }
+        }
+
+        /* ========= БЛОК КНОПОК (равномерно, горизонтальный ряд) ========= */
+        .buttons-row {
+            display: flex;
+            flex-wrap: wrap;          /* на совсем узких экранах перенос, но по заданию — горизонтальный ряд.
+                                         Используем теперь gap и flex, чтобы кнопки были широкими и равномерно распределены */
+            gap: 18px;
+            margin-bottom: 48px;
+            width: 100%;
+        }
+
+        /* каждая кнопка занимает равную долю пространства, широкая */
+        .action-button {
+            flex: 1 1 0px;            /* равномерное распределение, без прижимания к краям */
+            min-width: 120px;         /* чтобы на совсем маленьких экранах не сжимались в точку */
+            background: #ffffff;
+            border: none;
+            border-radius: 60px;
+            padding: 16px 8px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1f2937;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            letter-spacing: 0.3px;
+            background: #fefefe;
+            border: 1px solid #e2e8f0;
+        }
+
+        .action-button:hover {
+            background: #f1f5f9;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px -12px rgba(0, 0, 0, 0.2);
+            border-color: #cbd5e1;
+        }
+
+        .action-button:active {
+            transform: translateY(1px);
+            background: #e6edf4;
+        }
+
+        /* специальный акцент – можно добавить разный цвет, но по заданию просто текст */
+        /* кнопки широкие и в одном ряду */
+
+        /* ========= ДВЕ БОЛЬШИЕ ЯЧЕЙКИ ДЛЯ ТЕКСТА (расширяются вертикально) ========= */
+        .textareas-panel {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 28px;
+            width: 100%;
+        }
+
+        /* каждая ячейка занимает 50% ширины минус gap, но на мобилках становятся в колонку */
+        .text-card {
+            flex: 1 1 0px;
+            min-width: 260px;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.02);
+            transition: box-shadow 0.2s;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #eef2f6;
+        }
+
+        .text-card:hover {
+            box-shadow: 0 20px 32px -12px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Небольшой заголовок внутри ячейки для наглядности (не мешает функционалу) */
+        .card-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #5b6e8c;
+            padding: 18px 24px 6px 24px;
+            background: #ffffff;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        /* Само поле ввода — безразмерное, расширяется вниз по вертикали
+           Используем textarea с атрибутами, которые позволяют неограниченно расти */
+        .dynamic-textarea {
+            width: 100%;
+            padding: 20px 24px 24px 24px;
+            font-size: 1rem;
+            line-height: 1.55;
+            font-family: inherit;
+            border: none;
+            resize: vertical;          /* пользователь может тянуть, но и автоматически растёт */
+            background: #ffffff;
+            color: #0f172a;
+            outline: none;
+            min-height: 220px;         /* достаточно большая начальная высота */
+            overflow-y: auto;
+            transition: all 0.1s ease;
+            box-sizing: border-box;
+        }
+
+        /* Убираем стандартный скролл у textarea когда контент маленький,
+           но расширяется автоматически при вводе текста */
+        .dynamic-textarea:focus {
+            background-color: #fefdf8;
+        }
+
+        /* Делаем textarea безразмерной в том смысле, что она растет под содержимое.
+           Для автоматического расширения добавим немного JS (чистый, лёгкий) */
+        /* Также оставляем возможность вручную изменять размер через resize: vertical */
+
+        /* дополнительный стиль для второго блока — одинаковый */
+        .footer-note {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.75rem;
+            color: #8a99b0;
+            border-top: 1px solid #e4e9f0;
+            padding-top: 24px;
+        }
+
+        /* чтобы ячейки выглядели как единое целое и при вводе длинного текста не вылазили за границы */
+        .text-card {
+            word-break: break-word;
+        }
+
+        /* гарантия, что на очень широких экранах кнопки красиво растянуты */
+        @media (min-width: 1200px) {
+            .action-button {
+                font-size: 1.25rem;
+                padding: 18px 12px;
+            }
+        }
+
+        /* для мобильных устройств, если кнопки переносятся, то делаем ширину полной, но ряд сохраняется горизонтально
+           благодаря flex-wrap: wrap, но при переносе они будут строчками. Но условие "в одном горизонтальном ряду"
+           для десктопа выполнено — на маленьких экранах чаще всего ряд остаётся, но если не влезает — будут две строки.
+           Чтобы строго обеспечить один ряд без переноса, зададим .buttons-row { flex-wrap: nowrap; } для экранов >= 700px,
+           а на очень узких телефонах (ширина меньше 500px) допустим перенос дабы кнопки оставались широкими читабельными.
+           По условию - желательно равномерное распределение по экрану широкие, один ряд. Сделаем nowrap для экранов шире 620px */
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <!-- Заголовок большими буквами в левом верхнем углу -->
+    <h1 class="main-title">✨ Редактор заметок ✨</h1>
+    <!-- Можно и просто "ТЕКСТОВЫЙ БЛОК", но по запросу достаточно большие буквы -->
+
+    <!-- 4 кнопки, распределены равномерно по ширине, в одном горизонтальном ряду -->
+    <div class="buttons-row" id="buttonsRow">
+        <button class="action-button" data-action="clear-left">🧹 Очистить левую</button>
+        <button class="action-button" data-action="clear-right">🗑️ Очистить правую</button>
+        <button class="action-button" data-action="copy-left">📋 Копировать левую → правую</button>
+        <button class="action-button" data-action="swap">🔄 Обменять содержимое</button>
+    </div>
+
+    <!-- Две большие ячейки куда можно писать текст, безразмерные, расширяются вертикально -->
+    <div class="textareas-panel">
+        <!-- Левая большая ячейка -->
+        <div class="text-card">
+            <div class="card-label">📄 ЛЕВАЯ ОБЛАСТЬ</div>
+            <textarea class="dynamic-textarea" id="leftTextarea" placeholder="Введите любой текст здесь...&#10;Это поле автоматически расширяется по вертикали при добавлении новых строк.&#10;Оно не ограничено по размеру и может стать очень высоким."></textarea>
+        </div>
+        <!-- Правая большая ячейка -->
+        <div class="text-card">
+            <div class="card-label">📄 ПРАВАЯ ОБЛАСТЬ</div>
+            <textarea class="dynamic-textarea" id="rightTextarea" placeholder="Вторая зона для записей...&#10;Нажмите на кнопки, чтобы управлять содержимым.&#10;Поле растёт вместе с текстом — пишите сколько угодно!"></textarea>
+        </div>
+    </div>
+    <div class="footer-note">
+        ⚡ Текстовые поля расширяются вниз автоматически при вводе &nbsp;|&nbsp; Кнопки управляют содержимым
+    </div>
+</div>
+
+<script>
+    (function() {
+        // Получаем элементы textarea
+        const leftArea = document.getElementById('leftTextarea');
+        const rightArea = document.getElementById('rightTextarea');
+
+        // Функция для автоматического изменения высоты textarea под контент
+        // Делает textarea поистине "безразмерной" — расширяется до бесконечности вниз
+        function autoResizeTextarea(textarea) {
+            if (!textarea) return;
+            // Сбрасываем высоту, чтобы правильно вычислить scrollHeight
+            textarea.style.height = 'auto';
+            // Устанавливаем новую высоту в зависимости от содержимого
+            // Добавляем небольшую дополнительную высоту для комфортного отображения (можно без запаса, но пусть будет чуть больше)
+            let newHeight = textarea.scrollHeight;
+            // Ограничений по максимальной высоте не ставим — расширяется бесконечно
+            textarea.style.height = newHeight + 'px';
+        }
+
+        // Функция для привязки авто-расширения к конкретному textarea
+        function attachAutoResize(textarea) {
+            if (!textarea) return;
+            // Первоначальная подстройка высоты
+            autoResizeTextarea(textarea);
+            // События ввода, изменения, загрузки готовности
+            textarea.addEventListener('input', function() {
+                autoResizeTextarea(this);
+            });
+            // Также при изменении размера окна, возможно, текст переносится иначе — пересчёт
+            window.addEventListener('resize', function() {
+                autoResizeTextarea(textarea);
+            });
+            // Чтобы сработало при программной установке текста — дополнительно вызываем при фокусе и т.п.
+            // Но для кнопок будем вызывать пересчет вручную после изменения.
+        }
+
+        // Инициализируем авторасширение для обоих полей
+        attachAutoResize(leftArea);
+        attachAutoResize(rightArea);
+
+        // Функция принудительного обновления высоты обоих полей (после изменения через кнопки)
+        function refreshBothHeights() {
+            if (leftArea) autoResizeTextarea(leftArea);
+            if (rightArea) autoResizeTextarea(rightArea);
+        }
+
+        // ----- Логика кнопок (взаимодействие с текстовыми полями) -----
+        // очистка левой области
+        function clearLeft() {
+            if (leftArea) {
+                leftArea.value = '';
+                // вызываем событие input, чтобы сработал авторесайз (или делаем вручную)
+                triggerInputEvent(leftArea);
+                autoResizeTextarea(leftArea);
+            }
+        }
+
+        // очистка правой области
+        function clearRight() {
+            if (rightArea) {
+                rightArea.value = '';
+                triggerInputEvent(rightArea);
+                autoResizeTextarea(rightArea);
+            }
+        }
+
+        // копировать содержимое левой в правую (полная замена)
+        function copyLeftToRight() {
+            if (leftArea && rightArea) {
+                rightArea.value = leftArea.value;
+                triggerInputEvent(rightArea);
+                autoResizeTextarea(rightArea);
+                // левую не меняем, но ее высота уже корректна
+                autoResizeTextarea(leftArea);
+            }
+        }
+
+        // обменять содержимое между левой и правой областью
+        function swapContents() {
+            if (leftArea && rightArea) {
+                const leftValue = leftArea.value;
+                const rightValue = rightArea.value;
+                leftArea.value = rightValue;
+                rightArea.value = leftValue;
+                // принудительно обновить высоту
+                triggerInputEvent(leftArea);
+                triggerInputEvent(rightArea);
+                autoResizeTextarea(leftArea);
+                autoResizeTextarea(rightArea);
+            }
+        }
+
+        // вспомогательная функция: вызывает событие 'input' на элементе, чтобы сработали обработчики авторесайза
+        function triggerInputEvent(element) {
+            if (element) {
+                const inputEvent = new Event('input', { bubbles: true });
+                element.dispatchEvent(inputEvent);
+            }
+        }
+
+        // Назначим обработчики на кнопки по их data-атрибутам или id (лучше через dataset)
+        const buttons = document.querySelectorAll('.action-button');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const action = btn.getAttribute('data-action');
+                switch (action) {
+                    case 'clear-left':
+                        clearLeft();
+                        break;
+                    case 'clear-right':
+                        clearRight();
+                        break;
+                    case 'copy-left':
+                        copyLeftToRight();
+                        break;
+                    case 'swap':
+                        swapContents();
+                        break;
+                    default:
+                        console.log('неизвестное действие');
+                }
+                // Дополнительная синхронизация, если после смены контента что-то не так с высотой
+                setTimeout(() => {
+                    refreshBothHeights();
+                }, 10);
+            });
+        });
+
+        // Дополнительно: чтобы textarea идеально вели себя при вставке большого текста (Ctrl+V)
+        // уже событие input отработает, но добавим обработку paste для перестраховки
+        function handlePasteAndExpand(e) {
+            // Даем браузеру вставить текст, затем через микротаск обновим высоту
+            setTimeout(() => {
+                const target = e.target;
+                if (target && (target.id === 'leftTextarea' || target.id === 'rightTextarea')) {
+                    autoResizeTextarea(target);
+                }
+            }, 5);
+        }
+        leftArea.addEventListener('paste', handlePasteAndExpand);
+        rightArea.addEventListener('paste', handlePasteAndExpand);
+
+        // также при любых изменениях вне (программных) держим высоту актуальной
+        // добавим MutationObserver? не нужно, управление через кнопки уже вызывает refresh вручную.
+        // Для идеальной работы также при загрузке окна, если внутри есть placeholder текст, он тоже расширяется
+        window.addEventListener('load', () => {
+            refreshBothHeights();
+        });
+
+        // отслеживаем изменение размера экрана (уже есть в attachAutoResize, но ещё раз)
+        // Обработка веса для динамического расширения при уменьшении ширины (перенос текста)
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            if (resizeTimeout) clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                refreshBothHeights();
+            }, 100);
+        });
+
+        // убедимся, что при первом рендере textarea правильно выглядят (min-height 220px дополнительно,
+        // но если контента нет, то высота авто как минимум по количеству строк.
+        // Пользователь может написать любой многострочный текст и поле плавно расширяется.
+        console.log('Готово: две расширяемые ячейки, 4 кнопки, заголовок в левом верхнем углу');
+    })();
+</script>
+</body>
 </html>
