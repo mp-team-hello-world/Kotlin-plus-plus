@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Antlr4BuildTasks" Version="2.0.0" PrivateAssets="all" />
+    <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Antlr4 Update="KotlinGrammatic\*.g4">
+      <Package>Kotlin_plus_plus</Package>
+      <Listener>true</Listener>
+      <Visitor>false</Visitor>
+      <TargetLanguage>CSharp</TargetLanguage>
+      <OutputDir>$(ProjectDir)Generated</OutputDir>
+    </Antlr4>
+  </ItemGroup>
+
+</Project>

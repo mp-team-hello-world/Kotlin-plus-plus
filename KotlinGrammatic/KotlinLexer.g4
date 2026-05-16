@@ -1,0 +1,56 @@
+lexer grammar KotlinLexer;
+
+@header {
+namespace Kotlin_plus_plus;
+}
+
+DelimitedComment:
+	'/*' (DelimitedComment | .)*? '*/' -> channel(HIDDEN);
+LineComment: '//' ~[\r\n]* -> channel(HIDDEN);
+WS: [\u0020\u0009\u000C] -> channel(HIDDEN);
+NL: '\n' | '\r' '\n'?;
+
+fragment Hidden: DelimitedComment | LineComment | WS;
+
+IF: 'if';
+ELSE: 'else';
+FOR: 'for';
+IN: 'in';
+VAL: 'val';
+VAR: 'var';
+
+LPAREN: '(';
+RPAREN: ')';
+LCURL: '{';
+RCURL: '}';
+MULT: '*';
+MOD: '%';
+DIV: '/';
+ADD: '+';
+SUB: '-';
+INCR: '++';
+DECR: '--';
+CONJ: '&&';
+DISJ: '||';
+EXCL_NO_WS: '!';
+COLON: ':';
+SEMICOLON: ';';
+ASSIGNMENT: '=';
+ADD_ASSIGNMENT: '+=';
+SUB_ASSIGNMENT: '-=';
+MULT_ASSIGNMENT: '*=';
+DIV_ASSIGNMENT: '/=';
+HASH: '#';
+DOT: '.';
+COMMA: ',';
+DOTDOT: '..';
+
+LANGLE: '<';
+RANGLE: '>';
+LE: '<=';
+GE: '>=';
+EXCL_EQ: '!=';
+EQEQ: '==';
+
+ID: [a-zA-Z_][a-zA-Z0-9_]*;
+INT: [0-9]+;
