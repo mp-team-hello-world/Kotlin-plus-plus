@@ -21,6 +21,11 @@ class Program
 
         var tree = parser.root();
 
-        Console.WriteLine(tree.ToStringTree(parser));
+        var visitor = new CppGeneratorVisitor();
+
+        visitor.Visit(tree);
+        
+        Console.WriteLine("=== Сгенерированный C++ код ===");
+        Console.WriteLine(visitor.GetResult());
     }
 }
