@@ -59,10 +59,7 @@ async function translateText() {
     // Лёгкая анимация нажатия кнопки
     translateBtn.style.transform = 'scale(0.97)';
     setTimeout(() => { translateBtn.style.transform = ''; }, 120);
-
-    // Показываем красное уведомление "в процессе" (оно у вас уже настроено)
-    showInProgressMessage();
-
+    
     try {
         // !!! СЮДА ВСТАВЛЯЙТЕ ССЫЛКУ, КОТОРУЮ ВАМ ДАЕТ LOCALTUNNEL !!!
         // Обязательно добавьте /translate в конец адреса
