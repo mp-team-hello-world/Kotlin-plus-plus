@@ -49,7 +49,7 @@ function updateTranslateButtonState() {
 }
 
 // ========================
-// TRANSLATE
+// TRANSLATE — отправляет Kotlin-код на сервер и выводит сгенерированный C++
 // ========================
 async function translateText() {
     if (translateBtn.disabled) return;
