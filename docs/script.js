@@ -122,12 +122,27 @@ function triggerDownload() {
 }
 
 // ========================
-// АВТОМАТИЧЕСКОЕ РАСШИРЕНИЕ TEXTAREA (ВЕРТИКАЛЬНО)
+// АВТОМАТИЧЕСКОЕ РАСШИРЕНИЕ TEXTAREA (только когда не в режиме ручного ресайза)
 // ========================
+let isManualResizing = false;
+
 function autoResize(textarea) {
     if (!textarea) return;
+    if (isManualResizing) return; // Не мешаем ручному ресайзу
+    
+    // Сохраняем текущую высоту
+    const currentHeight = textarea.style.height;
+    
+    // Временно сбрасываем высоту для получения scrollHeight
     textarea.style.height = 'auto';
-    textarea.style.height = textarea.scrollHeight + 'px';
+    const scrollHeight = textarea.scrollHeight;
+    
+    // Если есть ручная высота и она больше scrollHeight, оставляем её (появится скролл)
+    if (currentHeight && parseInt(currentHeight) > scrollHeight) {
+        textarea.style.height = currentHeight;
+    } else {
+        textarea.style.height = scrollHeight + 'px';
+    }
 }
 
 function attachAutoResize(textarea) {
@@ -140,6 +155,63 @@ function attachAutoResize(textarea) {
         }
     });
     window.addEventListener('resize', () => autoResize(textarea));
+}
+
+// ========================
+// РУЧНОЙ РЕСАЙЗ ЧЕРЕЗ ПОЛОСКУ
+// ========================
+function attachManualResize(textarea) {
+    // Находим wrapper и создаём полоску, если её нет
+    let wrapper = textarea.parentElement;
+    if (!wrapper.classList.contains('textarea-wrapper')) {
+        // Если обёртки нет, создаём её
+        const newWrapper = document.createElement('div');
+        newWrapper.className = 'textarea-wrapper';
+        textarea.parentNode.insertBefore(newWrapper, textarea);
+        newWrapper.appendChild(textarea);
+        wrapper = newWrapper;
+    }
+    
+    let handle = wrapper.querySelector('.resize-handle');
+    if (!handle) {
+        handle = document.createElement('div');
+        handle.className = 'resize-handle';
+        wrapper.appendChild(handle);
+    }
+    
+    handle.addEventListener('mousedown', (e) => {
+        isManualResizing = true;
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const startY = e.clientY;
+        const startHeight = textarea.offsetHeight;
+        
+        function onMouseMove(moveEvent) {
+            const delta = moveEvent.clientY - startY;
+            let newHeight = startHeight + delta;
+            
+            // Ограничения
+            const minHeight = 80;
+            const maxHeight = 800;
+            newHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+            
+            textarea.style.height = newHeight + 'px';
+            textarea.style.overflowY = 'auto'; // Включаем скролл при необходимости
+        }
+        
+        function onMouseUp() {
+            isManualResizing = false;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            
+            // После ручного ресайза проверяем, нужно ли подогнать высоту
+            autoResize(textarea);
+        }
+        
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    });
 }
 
 // ========================
@@ -159,6 +231,10 @@ loadFileBtn.addEventListener('click', () => {
         
         reader.onload = (e) => {
             leftTextarea.value = e.target.result;
+            // ОБНОВЛЯЕМ СОСТОЯНИЕ КНОПКИ ПОСЛЕ ЗАГРУЗКИ
+            updateTranslateButtonState();
+            // АВТОМАТИЧЕСКИ РАСШИРЯЕМ TEXTAREA ПОД ЗАГРУЖЕННЫЙ ТЕКСТ
+            autoResize(leftTextarea);
         };
         
         reader.readAsText(file, 'UTF-8');
@@ -221,6 +297,8 @@ function init() {
     updateTranslateButtonState();
     attachAutoResize(leftTextarea);
     attachAutoResize(rightTextarea);
+    attachManualResize(leftTextarea);
+    attachManualResize(rightTextarea);
     
     // Гарантируем, что уведомления скрыты при старте
     progressToast.classList.remove('show');
