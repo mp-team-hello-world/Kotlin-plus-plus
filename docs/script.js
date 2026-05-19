@@ -58,17 +58,55 @@ function updateTranslateButtonState() {
 }
 
 // ========================
-// TRANSLATE — копирует левый текст в правое поле
+// TRANSLATE — отправляет Kotlin-код на сервер и выводит сгенерированный C++
 // ========================
-function translateText() {
+async function translateText() {
     if (translateBtn.disabled) return;
-    rightTextarea.value = leftTextarea.value;
-    autoResize(rightTextarea);
-    // Лёгкая анимация нажатия
+    
+    const kotlinCode = leftTextarea.value;
+
+    // Лёгкая анимация нажатия кнопки
     translateBtn.style.transform = 'scale(0.97)';
-    setTimeout(() => {
-        translateBtn.style.transform = '';
-    }, 120);
+    setTimeout(() => { translateBtn.style.transform = ''; }, 120);
+
+    // Показываем красное уведомление "в процессе" (оно у вас уже настроено)
+    showInProgressMessage();
+
+    try {
+        // !!! СЮДА ВСТАВЛЯЙТЕ ССЫЛКУ, КОТОРУЮ ВАМ ДАЕТ LOCALTUNNEL !!!
+        // Обязательно добавьте /translate в конец адреса
+        const tunnelUrl = 'https://tall-rules-joke.loca.lt/translate';
+
+        const response = await fetch(tunnelUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Этот заголовок заставляет localtunnel пропускать встроенную заглушку сомнительного сайта
+                'Bypass-Tunnel-Reminder': 'true'
+            },
+            body: JSON.stringify({ code: kotlinCode })
+        });
+
+        if (!response.ok) {
+            // Если .NET сервер вернул ошибку (например, BadRequest при ошибке синтаксиса)
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Ошибка компиляции');
+        }
+
+        const data = await response.json();
+        
+        // Записываем полученный C++ код в правое поле
+        rightTextarea.value = data.cppCode;
+        
+    } catch (error) {
+        console.error("Ошибка трансляции:", error);
+        
+        // Выводим ошибку в правое поле красивым текстом, чтобы пользователь понял, что пошло не так
+        rightTextarea.value = `/* \n[ОШИБКА ТРАНСЛЯЦИИ]\nНе удалось связаться с сервером или парсер ANTLR обнаружил ошибку:\n${error.message}\n*/`;
+    } finally {
+        // В любом случае обновляем высоту правого текстового поля
+        autoResize(rightTextarea);
+    }
 }
 
 // ========================
