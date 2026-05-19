@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Tools | Translate & Download</title>
+    <title>Kotlin++ | Internet code transpiler</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
 </head>
@@ -20,18 +20,22 @@
             <button class="btn" id="downloadBtn">Download</button>
         </div>
 
-        <!-- Две большие ячейки для текста (безразмерные, расширяются вниз) -->
+        <!-- Две большие ячейки для текста -->
         <div class="panels">
             <!-- Левая ячейка (источник для Translate) -->
             <div class="panel">
-                <div class="panel-header">📄 Kotlin Code </div>
-                <textarea class="text-box" id="leftText" placeholder="Type or paste your kotlin code here...&#10;Then press Translate"></textarea>
+                <div class="panel-header">📄 Kotlin Code</div>
+                <div class="textarea-wrapper">
+                    <textarea class="text-box" id="leftText" placeholder="Type or paste your kotlin code here...&#10;Then press Translate"></textarea>
+                </div>
             </div>
 
             <!-- Правая ячейка (цель для Translate) -->
             <div class="panel">
-                <div class="panel-header">📄 C++ Code </div>
-                <textarea class="text-box" id="rightText" placeholder="Translated text appears here...&#10;You can also edit this field manually.&#10;Click Download to save this as .cpp file."></textarea>
+                <div class="panel-header">📄 C++ Code</div>
+                <div class="textarea-wrapper">
+                    <textarea class="text-box" id="rightText" placeholder="Translated text appears here...&#10;You can also edit this field manually.&#10;Click Download to save this as .cpp file."></textarea>
+                </div>
             </div>
         </div>
     </div>
