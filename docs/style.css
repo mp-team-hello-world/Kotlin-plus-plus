@@ -118,7 +118,16 @@ body {
     font-family: 'Inter', monospace;
 }
 
-/* Текстовая область - безразмерная, расширяется вниз */
+/* Обёртка для textarea (нужна для полоски ресайза) */
+.textarea-wrapper {
+    position: relative;
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Текстовая область - с поддержкой ручного ресайза */
 .text-box {
     width: 100%;
     padding: 22px 24px;
@@ -126,17 +135,40 @@ body {
     line-height: 1.55;
     font-family: 'Inter', 'SF Mono', 'Fira Code', monospace;
     border: none;
-    resize: vertical;
+    resize: none; /* Отключаем стандартный ресайз */
     outline: none;
     background: #ffffff;
     min-height: 320px;
-    overflow-y: auto;
+    overflow-y: auto; /* Скролл появляется когда текст не помещается */
     font-weight: 450;
     color: #0f172a;
+    flex: 1;
 }
 
 .text-box:focus {
     background: #fefcf5;
+}
+
+/* Полоска для ручного ресайза */
+.resize-handle {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background-color: #cbd5e1;
+    cursor: ns-resize;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+    z-index: 10;
+}
+
+.resize-handle:hover {
+    background-color: #3b82f6;
+}
+
+.resize-handle:active {
+    background-color: #2563eb;
 }
 
 /* Центрированные уведомления (скругленный прямоугольник по центру) */
@@ -372,5 +404,8 @@ body {
     }
     .modal-content {
         width: 92%;
+    }
+    .resize-handle {
+        height: 8px; /* Чуть толще на мобильных */
     }
 }
