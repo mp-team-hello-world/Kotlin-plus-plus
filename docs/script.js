@@ -145,7 +145,29 @@ function attachAutoResize(textarea) {
 // ========================
 // НАЗНАЧЕНИЕ ОБРАБОТЧИКОВ КНОПОК
 // ========================
-loadFileBtn.addEventListener('click', showInProgressMessage);
+loadFileBtn.addEventListener('click', () => {
+    // Создаём скрытый input для выбора файла
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    
+    // Сработает, когда пользователь выберет файл
+    fileInput.onchange = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            leftTextarea.value = e.target.result;
+        };
+        
+        reader.readAsText(file, 'UTF-8');
+    };
+    
+    // Открываем системное окно
+    fileInput.click();
+});
+
 loadArchiveBtn.addEventListener('click', showInProgressMessage);
 
 translateBtn.addEventListener('click', () => {
