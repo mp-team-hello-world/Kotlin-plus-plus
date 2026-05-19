@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Tools | Translate & Download</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Заголовок большими буквами в левом верхнем углу -->
+        <h1 class="header-title">Kotlin++</h1>
+
+        <!-- 4 кнопки: Load File, Load Archive, Translate, Download -->
+        <div class="buttons-row">
+            <button class="btn" id="loadFileBtn">Load File</button>
+            <button class="btn" id="loadArchiveBtn">Load Archive</button>
+            <button class="btn btn-translate" id="translateBtn">Translate</button>
+            <button class="btn" id="downloadBtn">Download</button>
+        </div>
+
+        <!-- Две большие ячейки для текста (безразмерные, расширяются вниз) -->
+        <div class="panels">
+            <!-- Левая ячейка (источник для Translate) -->
+            <div class="panel">
+                <div class="panel-header">📄 Kotlin Code </div>
+                <textarea class="text-box" id="leftText" placeholder="Type or paste your kotlin code here...&#10;Then press Translate"></textarea>
+            </div>
+
+            <!-- Правая ячейка (цель для Translate) -->
+            <div class="panel">
+                <div class="panel-header">📄 C++ Code </div>
+                <textarea class="text-box" id="rightText" placeholder="Translated text appears here...&#10;You can also edit this field manually.&#10;Click Download to save this as .cpp file."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Центрированное уведомление (красное - in progress) -->
+    <div id="progressToast" class="toast-notification toast-error">
+        <span class="toast-icon">⚠️</span>
+        <span class="toast-message">sorry, this part is in progress yet</span>
+    </div>
+
+    <!-- Центрированное уведомление (зеленое - успешное сохранение) -->
+    <div id="successToast" class="toast-notification toast-success">
+        <span class="toast-icon">✅</span>
+        <span class="toast-message">file was saved successfully</span>
+    </div>
+
+    <!-- Модальное окно для ввода имени файла (.cpp) -->
+    <div id="filenameModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">💾 Save as C++ file</span>
+                <button class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label for="filenameInput">Enter file name (without extension):</label>
+                <input type="text" id="filenameInput" class="filename-input" placeholder="e.g., my_program" autocomplete="off">
+                <div class="modal-hint">.cpp will be added automatically</div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel-btn" id="cancelModalBtn">Cancel</button>
+                <button class="modal-btn submit-btn" id="submitFilenameBtn">Download .cpp</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
