@@ -9,11 +9,11 @@ const loadArchiveBtn = document.getElementById('loadArchiveBtn');
 const translateBtn = document.getElementById('translateBtn');
 const downloadBtn = document.getElementById('downloadBtn');
 
-// Уведомления (центрированные)
-const progressToast = document.getElementById('progressToast');   // красное
-const successToast = document.getElementById('successToast');     // зеленое
+// Уведомления
+const progressToast = document.getElementById('progressToast');
+const successToast = document.getElementById('successToast');
 
-// Модальное окно (только для ввода имени, без лишних надписей)
+// Модальное окно
 const modal = document.getElementById('filenameModal');
 const filenameInput = document.getElementById('filenameInput');
 const closeModalBtn = document.getElementById('closeModalBtn');
@@ -21,13 +21,10 @@ const cancelModalBtn = document.getElementById('cancelModalBtn');
 const submitFilenameBtn = document.getElementById('submitFilenameBtn');
 
 // ========================
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ УВЕДОМЛЕНИЙ
+// УВЕДОМЛЕНИЯ
 // ========================
-
-// Показать красное уведомление "в процессе"
 function showInProgressMessage() {
     progressToast.classList.remove('show');
-    // Форсируем reflow
     void progressToast.offsetWidth;
     progressToast.classList.add('show');
     setTimeout(() => {
@@ -35,7 +32,6 @@ function showInProgressMessage() {
     }, 2000);
 }
 
-// Показать зеленое уведомление "файл успешно сохранен"
 function showSuccessSavedMessage() {
     successToast.classList.remove('show');
     void successToast.offsetWidth;
@@ -46,25 +42,18 @@ function showSuccessSavedMessage() {
 }
 
 // ========================
-// УПРАВЛЕНИЕ КНОПКОЙ TRANSLATE (серая, пока левое поле пустое)
+// УПРАВЛЕНИЕ КНОПКОЙ TRANSLATE
 // ========================
 function updateTranslateButtonState() {
-    const leftText = leftTextarea.value.trim();
-    if (leftText === '') {
-        translateBtn.disabled = true;
-    } else {
-        translateBtn.disabled = false;
-    }
+    translateBtn.disabled = leftTextarea.value.trim() === '';
 }
 
 // ========================
-// TRANSLATE — копирует левый текст в правое поле
+// TRANSLATE
 // ========================
 function translateText() {
     if (translateBtn.disabled) return;
     rightTextarea.value = leftTextarea.value;
-    autoResize(rightTextarea);
-    // Лёгкая анимация нажатия
     translateBtn.style.transform = 'scale(0.97)';
     setTimeout(() => {
         translateBtn.style.transform = '';
@@ -72,14 +61,12 @@ function translateText() {
 }
 
 // ========================
-// DOWNLOAD: модальное окно → ввод имени → загрузка .cpp
+// DOWNLOAD
 // ========================
 function openFilenameModal() {
     filenameInput.value = '';
     modal.classList.add('show');
-    setTimeout(() => {
-        filenameInput.focus();
-    }, 100);
+    setTimeout(() => filenameInput.focus(), 100);
 }
 
 function closeModal() {
@@ -88,22 +75,16 @@ function closeModal() {
 
 function triggerDownload() {
     let fileName = filenameInput.value.trim();
-    if (fileName === '') {
-        fileName = 'document';
-    }
-    // Защита от недопустимых символов в имени файла
+    if (fileName === '') fileName = 'document';
     fileName = fileName.replace(/[^a-zA-Z0-9_\-]/g, '_');
     if (fileName.length === 0) fileName = 'downloaded_file';
     
     const fullFileName = `${fileName}.cpp`;
-    // Содержимое для сохранения — берём из правой области (результат работы)
     let contentToSave = rightTextarea.value;
     if (contentToSave.trim() === '') {
-        // Шаблон по умолчанию, если в правой области пусто
-        contentToSave = '// Generated C++ file\n// Add your code to the right area before downloading.\n\n#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}';
+        contentToSave = '// Generated C++ file\n\n#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}';
     }
     
-    // Создаём Blob и запускаем загрузку
     const blob = new Blob([contentToSave], { type: 'text/plain' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -114,57 +95,70 @@ function triggerDownload() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     
-    // Зелёное уведомление об успешном сохранении
     showSuccessSavedMessage();
-    
-    // Закрываем модальное окно
     closeModal();
 }
 
 // ========================
-// АВТОМАТИЧЕСКОЕ РАСШИРЕНИЕ TEXTAREA (только когда не в режиме ручного ресайза)
+// РАСЧЕТ ОПТИМАЛЬНОЙ ВЫСОТЫ TEXTAREA
+// ========================
+function calculateOptimalHeight() {
+    // Получаем элементы
+    const header = document.querySelector('.header-title');
+    const panels = document.querySelector('.panels');
+    
+    if (!header || !panels) return 320; // fallback высота
+    
+    // Расстояние от верха заголовка до верха экрана
+    const headerTop = header.getBoundingClientRect().top;
+    
+    // Высота окна
+    const windowHeight = window.innerHeight;
+    
+    // Расстояние от верха panels до верха экрана
+    const panelsTop = panels.getBoundingClientRect().top;
+    
+    // Отступ снизу: такой же как сверху, плюс небольшой дополнительный отступ (30px)
+    const bottomOffset = headerTop + 30;
+    
+    // Высота для textarea = высота окна - отступ сверху до panels - отступ снизу
+    let availableHeight = windowHeight - panelsTop - bottomOffset;
+    
+    // Ограничения
+    const minHeight = 200;
+    const maxHeight = 800;
+    availableHeight = Math.max(minHeight, Math.min(maxHeight, availableHeight));
+    
+    return availableHeight;
+}
+
+// ========================
+// УСТАНОВКА ВЫСОТЫ ДЛЯ ОБОИХ TEXTAREA
 // ========================
 let isManualResizing = false;
 
-function autoResize(textarea) {
-    if (!textarea) return;
+function setBothTextareasHeight(height) {
+    leftTextarea.style.height = height + 'px';
+    leftTextarea.style.overflowY = 'auto';
+    rightTextarea.style.height = height + 'px';
+    rightTextarea.style.overflowY = 'auto';
+}
+
+// Обновление высоты при ресайзе окна
+function updateHeightOnResize() {
     if (isManualResizing) return; // Не мешаем ручному ресайзу
     
-    // Сохраняем текущую высоту
-    const currentHeight = textarea.style.height;
-    
-    // Временно сбрасываем высоту для получения scrollHeight
-    textarea.style.height = 'auto';
-    const scrollHeight = textarea.scrollHeight;
-    
-    // Если есть ручная высота и она больше scrollHeight, оставляем её (появится скролл)
-    if (currentHeight && parseInt(currentHeight) > scrollHeight) {
-        textarea.style.height = currentHeight;
-    } else {
-        textarea.style.height = scrollHeight + 'px';
-    }
-}
-
-function attachAutoResize(textarea) {
-    if (!textarea) return;
-    autoResize(textarea);
-    textarea.addEventListener('input', function() {
-        autoResize(this);
-        if (textarea.id === 'leftText') {
-            updateTranslateButtonState();
-        }
-    });
-    window.addEventListener('resize', () => autoResize(textarea));
+    const newHeight = calculateOptimalHeight();
+    setBothTextareasHeight(newHeight);
 }
 
 // ========================
-// РУЧНОЙ РЕСАЙЗ ЧЕРЕЗ ПОЛОСКУ
+// СИНХРОННЫЙ РУЧНОЙ РЕСАЙЗ
 // ========================
-function attachManualResize(textarea) {
-    // Находим wrapper и создаём полоску, если её нет
+function setupManualResize(textarea, otherTextarea, sideName) {
+    // Создаём wrapper
     let wrapper = textarea.parentElement;
     if (!wrapper.classList.contains('textarea-wrapper')) {
-        // Если обёртки нет, создаём её
         const newWrapper = document.createElement('div');
         newWrapper.className = 'textarea-wrapper';
         textarea.parentNode.insertBefore(newWrapper, textarea);
@@ -172,6 +166,7 @@ function attachManualResize(textarea) {
         wrapper = newWrapper;
     }
     
+    // Создаём полоску
     let handle = wrapper.querySelector('.resize-handle');
     if (!handle) {
         handle = document.createElement('div');
@@ -179,10 +174,14 @@ function attachManualResize(textarea) {
         wrapper.appendChild(handle);
     }
     
-    handle.addEventListener('mousedown', (e) => {
-        isManualResizing = true;
+    handle.style.cursor = 'ns-resize';
+    
+    handle.addEventListener('mousedown', function(e) {
         e.preventDefault();
         e.stopPropagation();
+        
+        console.log(sideName + ': Mouse DOWN');
+        isManualResizing = true;
         
         const startY = e.clientY;
         const startHeight = textarea.offsetHeight;
@@ -192,81 +191,71 @@ function attachManualResize(textarea) {
             let newHeight = startHeight + delta;
             
             // Ограничения
-            const minHeight = 80;
+            const minHeight = 150;
             const maxHeight = 800;
             newHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
             
+            console.log(sideName + ': newHeight = ' + newHeight);
+            
+            // Меняем оба textarea
             textarea.style.height = newHeight + 'px';
-            textarea.style.overflowY = 'auto'; // Включаем скролл при необходимости
+            textarea.style.overflowY = 'auto';
+            
+            otherTextarea.style.height = newHeight + 'px';
+            otherTextarea.style.overflowY = 'auto';
         }
         
         function onMouseUp() {
+            console.log(sideName + ': Mouse UP');
             isManualResizing = false;
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
-            
-            // После ручного ресайза проверяем, нужно ли подогнать высоту
-            autoResize(textarea);
         }
         
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
     });
+    
+    console.log(sideName + ': Ресайз настроен (синхронный)');
 }
 
 // ========================
-// НАЗНАЧЕНИЕ ОБРАБОТЧИКОВ КНОПОК
+// ОБРАБОТЧИКИ КНОПОК
 // ========================
 loadFileBtn.addEventListener('click', () => {
-    // Создаём скрытый input для выбора файла
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     
-    // Сработает, когда пользователь выберет файл
     fileInput.onchange = (event) => {
         const file = event.target.files[0];
         if (!file) return;
         
         const reader = new FileReader();
-        
         reader.onload = (e) => {
             leftTextarea.value = e.target.result;
-            // ОБНОВЛЯЕМ СОСТОЯНИЕ КНОПКИ ПОСЛЕ ЗАГРУЗКИ
             updateTranslateButtonState();
-            // АВТОМАТИЧЕСКИ РАСШИРЯЕМ TEXTAREA ПОД ЗАГРУЖЕННЫЙ ТЕКСТ
-            autoResize(leftTextarea);
         };
-        
         reader.readAsText(file, 'UTF-8');
     };
     
-    // Открываем системное окно
     fileInput.click();
 });
 
 loadArchiveBtn.addEventListener('click', showInProgressMessage);
 
 translateBtn.addEventListener('click', () => {
-    if (!translateBtn.disabled) {
-        translateText();
-    }
+    if (!translateBtn.disabled) translateText();
 });
 
 downloadBtn.addEventListener('click', openFilenameModal);
 
-// ========================
-// МОДАЛЬНОЕ ОКНО: закрытие и сохранение
-// ========================
+// Модальное окно
 closeModalBtn.addEventListener('click', closeModal);
 cancelModalBtn.addEventListener('click', closeModal);
 submitFilenameBtn.addEventListener('click', triggerDownload);
-
-// Закрытие по клику на фон
 modal.addEventListener('click', (e) => {
     if (e.target === modal) closeModal();
 });
-
-// Enter в поле ввода имени файла
 filenameInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         e.preventDefault();
@@ -275,35 +264,49 @@ filenameInput.addEventListener('keypress', (e) => {
 });
 
 // ========================
-// ДОПОЛНИТЕЛЬНЫЕ СОБЫТИЯ ДЛЯ АВТОРАЗМЕРА И ПАСТЫ
+// СОБЫТИЯ ДЛЯ TEXTAREA
 // ========================
+leftTextarea.addEventListener('input', () => {
+    updateTranslateButtonState();
+});
+
 leftTextarea.addEventListener('paste', () => {
     setTimeout(() => {
-        autoResize(leftTextarea);
         updateTranslateButtonState();
     }, 10);
 });
 
-rightTextarea.addEventListener('paste', () => {
-    setTimeout(() => autoResize(rightTextarea), 10);
+// ========================
+// ОБРАБОТЧИК РЕСАЙЗА ОКНА
+// ========================
+window.addEventListener('resize', () => {
+    setTimeout(updateHeightOnResize, 100);
 });
-
-leftTextarea.addEventListener('input', updateTranslateButtonState);
 
 // ========================
 // ИНИЦИАЛИЗАЦИЯ
 // ========================
 function init() {
-    updateTranslateButtonState();
-    attachAutoResize(leftTextarea);
-    attachAutoResize(rightTextarea);
-    attachManualResize(leftTextarea);
-    attachManualResize(rightTextarea);
+    console.log('Инициализация с автоматической подстройкой высоты...');
     
-    // Гарантируем, что уведомления скрыты при старте
+    // Рассчитываем и устанавливаем оптимальную высоту
+    const optimalHeight = calculateOptimalHeight();
+    setBothTextareasHeight(optimalHeight);
+    
+    // Настраиваем синхронный ручной ресайз
+    setupManualResize(leftTextarea, rightTextarea, 'LEFT');
+    setupManualResize(rightTextarea, leftTextarea, 'RIGHT');
+    
+    // Обновляем состояние кнопки
+    updateTranslateButtonState();
+    
+    // Скрываем уведомления
     progressToast.classList.remove('show');
     successToast.classList.remove('show');
     modal.classList.remove('show');
+    
+    console.log('Инициализация завершена, высота:', optimalHeight);
 }
 
+// Запускаем инициализацию после полной загрузки страницы
 document.addEventListener('DOMContentLoaded', init);

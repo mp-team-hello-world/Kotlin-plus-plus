@@ -11,14 +11,12 @@ body {
     padding: 30px;
 }
 
-/* Контейнер */
 .container {
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
 }
 
-/* Заголовок большими буквами в левом верхнем углу */
 .header-title {
     font-size: 42px;
     font-weight: 800;
@@ -36,7 +34,6 @@ body {
     text-shadow: none;
 }
 
-/* Ряд с кнопками */
 .buttons-row {
     display: flex;
     gap: 20px;
@@ -73,7 +70,6 @@ body {
     transform: translateY(1px);
 }
 
-/* Стиль для кнопки Translate в неактивном состоянии */
 .btn-translate:disabled {
     background: #e2e8f0;
     color: #94a3b8;
@@ -84,11 +80,11 @@ body {
     border-color: #cbd5e1;
 }
 
-/* Две большие ячейки */
 .panels {
     display: flex;
     gap: 30px;
     flex-wrap: wrap;
+    align-items: flex-start;
 }
 
 .panel {
@@ -118,16 +114,11 @@ body {
     font-family: 'Inter', monospace;
 }
 
-/* Обёртка для textarea (нужна для полоски ресайза) */
 .textarea-wrapper {
     position: relative;
     width: 100%;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
 }
 
-/* Текстовая область - с поддержкой ручного ресайза */
 .text-box {
     width: 100%;
     padding: 22px 24px;
@@ -135,43 +126,45 @@ body {
     line-height: 1.55;
     font-family: 'Inter', 'SF Mono', 'Fira Code', monospace;
     border: none;
-    resize: none; /* Отключаем стандартный ресайз */
+    resize: none;
     outline: none;
     background: #ffffff;
-    min-height: 320px;
-    overflow-y: auto; /* Скролл появляется когда текст не помещается */
+    min-height: 150px;
+    overflow-y: auto;
     font-weight: 450;
     color: #0f172a;
-    flex: 1;
+    display: block;
 }
 
 .text-box:focus {
     background: #fefcf5;
 }
 
-/* Полоска для ручного ресайза */
 .resize-handle {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 6px;
+    bottom: 4px;
+    left: 20%;
+    width: 60%;
+    height: 4px;
     background-color: #cbd5e1;
     cursor: ns-resize;
-    border-radius: 3px;
-    transition: background-color 0.2s;
+    border-radius: 4px;
+    transition: all 0.2s ease;
     z-index: 10;
+    opacity: 0.7;
 }
 
 .resize-handle:hover {
     background-color: #3b82f6;
+    opacity: 1;
+    height: 5px;
+    bottom: 3.5px;
 }
 
 .resize-handle:active {
     background-color: #2563eb;
 }
 
-/* Центрированные уведомления (скругленный прямоугольник по центру) */
 .toast-notification {
     position: fixed;
     top: 50%;
@@ -221,7 +214,6 @@ body {
     border: 1px solid rgba(255,255,255,0.25);
 }
 
-/* Модальное окно (только для Download) */
 .modal {
     display: none;
     position: fixed;
@@ -376,7 +368,6 @@ body {
     box-shadow: 0 6px 14px rgba(59,130,246,0.3);
 }
 
-/* Адаптив для мобильных */
 @media (max-width: 768px) {
     body {
         padding: 20px;
@@ -406,6 +397,9 @@ body {
         width: 92%;
     }
     .resize-handle {
-        height: 8px; /* Чуть толще на мобильных */
+        width: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 6px;
     }
 }
