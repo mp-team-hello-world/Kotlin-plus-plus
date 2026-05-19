@@ -63,7 +63,7 @@ async function translateText() {
     try {
         // !!! СЮДА ВСТАВЛЯЙТЕ ССЫЛКУ, КОТОРУЮ ВАМ ДАЕТ LOCALTUNNEL !!!
         // Обязательно добавьте /translate в конец адреса
-        const tunnelUrl = 'https://tall-rules-joke.loca.lt/translate';
+        const tunnelUrl = 'https://mkn-kotlin-compiler.loca.lt/translate';
 
         const response = await fetch(tunnelUrl, {
             method: 'POST',
