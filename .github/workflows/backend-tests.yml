@@ -1,0 +1,30 @@
+name: Backend Tests
+
+on:
+  push:
+    paths:
+      - "Kotlin-plus-plus/**"
+      - ".github/workflows/backend-tests.yml"
+  pull_request:
+    paths:
+      - "Kotlin-plus-plus/**"
+      - ".github/workflows/backend-tests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore Kotlin-plus-plus
+
+      - name: Run tests
+        run: dotnet test Kotlin-plus-plus --logger "trx;LogFileName=test_results.trx"
