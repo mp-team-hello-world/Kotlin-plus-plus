@@ -6,10 +6,29 @@ class Program
 {
     static void Main(string[] args)
     {
-        string kotlinCode = @"val x = 10
-        if (x > 5) {
-            val y = x
+        string kotlinCode = @"
+        fun testAllFeatures(limit: Int): Int {
+    var count = 0
+    
+    for (i in 1..limit) {
+        if (i > 10) {
+            break
+        } else {
+            count = count + i
         }
+    }
+    while (count < 100) {
+        try {
+            count = count + 10
+        } catch (e: Exception) {
+            return -1
+        } finally {
+            count = count + 1
+        }
+    }
+
+    return count
+}
         ";
 
         var inputStream = new AntlrInputStream(kotlinCode);
