@@ -16,6 +16,10 @@
     <PackageReference Include="NUnit3TestAdapter" Version="4.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
   </ItemGroup>
+  <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+</PropertyGroup>
+
   <ItemGroup>
     <Antlr4 Update="KotlinGrammatic\*.g4">
       <Package>Kotlin_plus_plus</Package>
