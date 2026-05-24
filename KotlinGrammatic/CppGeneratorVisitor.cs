@@ -5,8 +5,6 @@ using Antlr4.Runtime.Tree;
 
 namespace Kotlin_plus_plus;
 
-// TODO: фабрика? ООП
-
 public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
 {
     private int _indentLevel = 0;
@@ -24,24 +22,10 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         // Формируем финальный вывод
         var finalOutput = new List<string>();
         
-        // Заголовки
-        finalOutput.Add("#include <iostream>");
-        finalOutput.Add("#include <string>");
-        finalOutput.Add("");
         finalOutput.Add("using namespace std;");
         finalOutput.Add("");
-        
-        // main функция
-        finalOutput.Add("int main() {");
-        
-        // Тело с отступами
-        foreach (var line in _output)
-        {
-            finalOutput.Add("    " + line);
-        }
-        
-        finalOutput.Add("    return 0;");
-        finalOutput.Add("}");
+
+        finalOutput.AddRange(_output);
         
         return string.Join("\n", finalOutput);
     }
@@ -71,92 +55,114 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
     // statement: variableDeclaration | ifExpression | forStatement | block | expression
     public override string VisitStatement(KotlinParser.StatementContext context)
     {
-        if (context.variableDeclaration() != null)
+        if (context.expression() != null)
         {
-            Visit(context.variableDeclaration());
-        }
-        else if (context.ifExpression() != null)
-        {
-            Visit(context.ifExpression());
-        }
-        else if (context.forStatement() != null)
-        {
-            Visit(context.forStatement());
-        }
-        else if (context.block() != null)
-        {
-            Visit(context.block());
-        }
-        else if (context.expression() != null)
-        {
-            string expr = Visit(context.expression());
-            if (!string.IsNullOrEmpty(expr))
+            string exprResult = Visit(context.expression());
+            if (!string.IsNullOrEmpty(exprResult))
             {
-                AddLine($"{expr};");
+                if (exprResult.StartsWith("/*") && exprResult.EndsWith("*/"))
+                {
+                    AddLine(exprResult);
+                }
+                else
+                {
+                    AddLine($"{exprResult};");
+                }
             }
+            return null;
         }
-        return null;
+
+        // Для всех остальных (if, for, while, объявлений переменных) вызываем стандартный обход
+        return base.VisitStatement(context);
+    }
+
+    public override string VisitIdentifier(KotlinParser.IdentifierContext context)
+    {
+        return context.ID().GetText();
+    }
+    
+    public override string VisitIntLiteral(KotlinParser.IntLiteralContext context)
+    {
+        return context.INT().GetText();
+    }
+    
+    public override string VisitParens(KotlinParser.ParensContext context)
+    {
+        return $"({Visit(context.expression())})";
+    }
+    
+    public override string VisitUnaryMinus(KotlinParser.UnaryMinusContext context)
+    {
+        return $"-{Visit(context.expression())}";
+    }
+    
+    public override string VisitMulDiv(KotlinParser.MulDivContext context)
+    {
+        return $"{Visit(context.expression(0))} {context.GetChild(1).GetText()} {Visit(context.expression(1))}";
+    }
+    
+    public override string VisitAddSub(KotlinParser.AddSubContext context)
+    {
+        return $"{Visit(context.expression(0))} {context.GetChild(1).GetText()} {Visit(context.expression(1))}";
+    }
+    
+    public override string VisitComparison(KotlinParser.ComparisonContext context)
+    {
+        return $"{Visit(context.expression(0))} {context.GetChild(1).GetText()} {Visit(context.expression(1))}";
     }
     
     // variableDeclaration: (VAL | VAR) ID ASSIGNMENT expression;
     public override string VisitVariableDeclaration(KotlinParser.VariableDeclarationContext context)
     {
-        string varName = context.ID().GetText();
-        string value = Visit(context.expression());
+        if (context.expression() == null || context.ASSIGNMENT() == null)
+        {
+            // Берем оригинальный текст с пробелами
+            int a = context.Start.TokenIndex;
+            int b = context.Stop.TokenIndex;
+            var interval = Antlr4.Runtime.Misc.Interval.Of(context.Start.StartIndex, context.Stop.StopIndex);
+            string rawStatement = context.Start.InputStream.GetText(interval).Trim().Replace("\r", "").Replace("\n", " ");
+            
+            AddLine($"/* Unsupported variable declaration syntax: {rawStatement} */");
+            return null;
+        }
+
+        string exprText = context.expression().GetText();
+
+        if (exprText.StartsWith("listOf") || 
+            exprText.StartsWith("mapOf") || 
+            context.expression() is KotlinParser.DynamicFallbackExprContext)
+        {
+            // Исправлено: забираем сырой текст с сохранением всех пробелов
+            var interval = Antlr4.Runtime.Misc.Interval.Of(context.Start.StartIndex, context.Stop.StopIndex);
+            string rawStatement = context.Start.InputStream.GetText(interval).Trim().Replace("\r", "").Replace("\n", " ");
+            
+            AddLine($"/* Unsupported variable declaration (contains unimplemented features): {rawStatement} */");
+            return null;
+        }
+
+        string varName = context.ID()?.GetText() ?? "unknownVar";
+        string modifier = context.VAL() != null ? "const auto" : "auto";
         
-        AddLine($"auto {varName} = {value};");
+        string value = Visit(context.expression());
+        AddLine($"{modifier} {varName} = {value};");
+        
         return null;
     }
     
-    // expression: ID | INT | expression (LANGLE|RANGLE|LE|GE|EQEQ|EXCL_EQ) expression | LPAREN expression RPAREN
-    public override string VisitExpression(KotlinParser.ExpressionContext context)
+    public override string VisitAssignment(KotlinParser.AssignmentContext context)
     {
-        // Случай 1: просто переменная
-        if (context.ID() != null)
+        string id = context.ID()?.GetText() ?? "unknown";
+        if (context.expression() != null)
         {
-            return context.ID().GetText();
+            AddLine($"{id} = {Visit(context.expression())};");
         }
-        // Случай 2: просто число
-        else if (context.INT() != null)
+        else
         {
-            return context.INT().GetText();
+            AddLine($"/* Broken assignment: {context.GetText().Trim()} */");
         }
-        // Случай 3: выражение в скобках: ( expression )
-        else if (context.LPAREN() != null)
-        {
-            var expressions = context.expression();
-            if (expressions != null && expressions.Length > 0)
-            {
-                return Visit(expressions[0]);
-            }
-            
-            for (int i = 0; i < context.ChildCount; i++)
-            {
-                if (context.GetChild(i) is KotlinParser.ExpressionContext innerExpr)
-                {
-                    return Visit(innerExpr);
-                }
-            }
-            
-            return "";
-        }
-        // Случай 4: бинарная операция
-        else if (context.ChildCount == 3)
-        {
-            var leftChild = context.GetChild(0) as KotlinParser.ExpressionContext;
-            var rightChild = context.GetChild(2) as KotlinParser.ExpressionContext;
-            
-            if (leftChild != null && rightChild != null)
-            {
-                string left = Visit(leftChild);
-                string op = context.GetChild(1).GetText();
-                string right = Visit(rightChild);
-                return $"{left} {op} {right}";
-            }
-        }
-        
-        return "";
+        return null;
     }
+    
     
     // block: LCURL statements RCURL;
     public override string VisitBlock(KotlinParser.BlockContext context)
@@ -168,31 +174,11 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         AddLine("}");
         return null;
     }
-    
-    // ifExpression: IF LPAREN expression RPAREN controlStructureBody (ELSE controlStructureBody)?
-    public override string VisitIfExpression(KotlinParser.IfExpressionContext context)
-    {
-        string condition = Visit(context.expression());
-        AddLine($"if ({condition})");
-        
-        Visit(context.controlStructureBody(0));
-        
-        if (context.controlStructureBody().Length > 1)
-        {
-            AddLine("else");
-            Visit(context.controlStructureBody(1));
-        }
-        
-        return null;
-    }
-    
-    // controlStructureBody: block | statement
+
     public override string VisitControlStructureBody(KotlinParser.ControlStructureBodyContext context)
     {
         if (context.block() != null)
-        {
             Visit(context.block());
-        }
         else if (context.statement() != null)
         {
             _indentLevel++;
@@ -202,15 +188,220 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         return null;
     }
     
-    // forStatement: FOR LPAREN ID IN expression DOTDOT expression RPAREN controlStructureBody;
+    // ifExpression: IF LPAREN expression RPAREN controlStructureBody (ELSE controlStructureBody)?
+    public override string VisitIfExpression(KotlinParser.IfExpressionContext context)
+    {
+        AddLine($"if ({Visit(context.expression())})");
+        Visit(context.controlStructureBody(0));
+        
+        if (context.controlStructureBody().Length > 1)
+        {
+            AddLine("else");
+            Visit(context.controlStructureBody(1));
+        }
+        return null;
+    }
+    
+    
     public override string VisitForStatement(KotlinParser.ForStatementContext context)
     {
-        string varName = context.ID().GetText();
-        string start = Visit(context.expression(0));
-        string end = Visit(context.expression(1));
-        
-        AddLine($"for (int {varName} = {start}; {varName} <= {end}; {varName}++)");
+        AddLine($"for (int {context.ID().GetText()} = {Visit(context.expression(0))}; {context.ID().GetText()} <= {Visit(context.expression(1))}; {context.ID().GetText()}++)");
         Visit(context.controlStructureBody());
+        return null;
+    }
+    
+    public override string VisitWhileStatement(KotlinParser.WhileStatementContext context)
+    {
+        AddLine($"while ({Visit(context.expression())})");
+        if (context.controlStructureBody() != null)
+            Visit(context.controlStructureBody());
+        else
+            AddLine(";");
+        return null;
+    }
+    
+    public override string VisitDoWhileStatement(KotlinParser.DoWhileStatementContext context)
+    {
+        AddLine("do");
+        if (context.controlStructureBody() != null)
+            Visit(context.controlStructureBody());
+        else
+            AddLine(";");
+        AddLine($"while ({Visit(context.expression())});");
+        return null;
+    }
+
+    public override string VisitFunctionDeclaration(KotlinParser.FunctionDeclarationContext context)
+    {
+        string funcName = context.ID()[0].GetText();
+        
+        // Параметры
+        var parameters = new List<string>();
+        if (context.parameter() != null)
+        {
+            foreach (var param in context.parameter())
+            {
+                string name = param.ID(0)?.GetText() ?? "p";
+                string type = ConvertType(param.ID(1)?.GetText() ?? "Unit");
+                parameters.Add($"{type} {name}");
+            }
+        }
+        
+        // Возвращаемый тип
+        string returnType;
+        if (funcName == "main")
+        {
+            // main всегда должен быть int в C++
+            returnType = "int";
+        }
+        else if (context.ID().Length > 1)
+        {
+            string kotlinReturnType = context.ID()[context.ID().Length - 1].GetText();
+            returnType = ConvertType(kotlinReturnType);
+        }
+        else
+        {
+            returnType = "void";
+        }
+        
+        AddLine($"{returnType} {funcName}({string.Join(", ", parameters)})");
+
+        if (funcName == "main")
+        {
+            // Если это main, мы не просто визитим тело, а гарантируем return 0 в конце блока
+            // Для этого заглянем внутрь блока функции
+            var body = context.functionBody();
+            if (body.block() != null)
+            {
+                AddLine("{");
+                _indentLevel++;
+                Visit(body.block().statements());
+                AddLine("return 0;");
+                _indentLevel--;
+                AddLine("}");
+            }
+            else 
+            {
+                Visit(body);
+            }
+        }
+        else
+        {
+            Visit(context.functionBody());
+        }
+        AddLine("");
+        return null;
+    }
+    
+    public override string VisitFunctionBody(KotlinParser.FunctionBodyContext context)
+    {
+        if (context.block() != null)
+        {
+            Visit(context.block());
+        }
+        else if (context.ASSIGNMENT() != null)
+        {
+            AddLine("{");
+            _indentLevel++;
+            AddLine($"return {Visit(context.expression())};");
+            _indentLevel--;
+            AddLine("}");
+        }
+        return null;
+    }
+    
+    private string ConvertType(string kotlinType) => kotlinType switch
+    {
+        "Int" => "int",
+        "Boolean" => "bool",
+        "Unit" => "void",
+        _ => "auto"
+    };
+    
+    // ==================== ПРЫЖКИ ====================
+    
+    public override string VisitJumpExpression(KotlinParser.JumpExpressionContext context)
+    {
+        if (context.RETURN() != null)
+            AddLine(context.expression() != null ? $"return {Visit(context.expression())};" : "return;");
+        else if (context.CONTINUE() != null)
+            AddLine("continue;");
+        else if (context.BREAK() != null)
+            AddLine("break;");
+        else if (context.THROW() != null)
+            AddLine($"// throw {Visit(context.expression())}");
+        return null;
+    }
+    
+    // ==================== ОБРАБОТКА ИСКЛЮЧЕНИЙ ====================
+    
+    public override string VisitTryExpression(KotlinParser.TryExpressionContext context)
+    {
+        AddLine("try");
+        Visit(context.block());
+        
+        foreach (var catchBlock in context.catchBlock())
+        {
+            AddLine("catch (...)"); // Упрощённо, тип игнорируем
+            Visit(catchBlock.block());
+        }
+        
+        if (context.finallyBlock() != null)
+        {
+            AddLine("// finally");
+            Visit(context.finallyBlock().block());
+        }
+        return null;
+    }
+
+    public override string VisitFunctionCall(KotlinParser.FunctionCallContext context)
+    {
+        return $"/* Unimplemented function call: {context.GetText()} */";
+    }
+
+    public override string VisitUnknownPrefixExpr(KotlinParser.UnknownPrefixExprContext context)
+    {
+        // Извлекаем чистый текст всей конструкции (например, when(x){1->println(1)else->println(0)})
+        string fullText = context.GetText().Trim();
+        
+        // Заменяем переносы строк на пробелы, чтобы комментарий оставался аккуратным
+        fullText = fullText.Replace("\r", "").Replace("\n", " ");
+        
+        // Ограничим длину, если это огромный кусок кода
+        if (fullText.Length > 70) 
+            fullText = fullText.Substring(0, 67) + "...";
+
+        return $"/* Unsupported construction: {fullText} */";
+    }
+
+    public override string VisitUnknownBlockKeyword(KotlinParser.UnknownBlockKeywordContext context)
+    {
+        return $"/* Unsupported block keyword construction: {context.ID().GetText()} {{...}} */";
+    }
+
+    public override string VisitUnknownBlock(KotlinParser.UnknownBlockContext context)
+    {
+        return "/* Unsupported standalone block / lambda */";
+    }
+
+    public override string VisitDynamicFallbackExpr(KotlinParser.DynamicFallbackExprContext context)
+    {
+        // Извлекаем сырой текст (цепочку методов или инкременты) и убираем переносы
+        string rawText = context.GetText().Trim().Replace("\r", "").Replace("\n", " ");
+        
+        
+        return $"/* Unsupported expression syntax: {rawText} */";
+    }
+    public override string VisitUnparsedStatement(KotlinParser.UnparsedStatementContext context)
+    {
+        // Исправлено: сохраняем пробелы между val и переменными
+        var interval = Antlr4.Runtime.Misc.Interval.Of(context.Start.StartIndex, context.Stop.StopIndex);
+        string rawCode = context.Start.InputStream.GetText(interval).Trim().Replace("\r", "").Replace("\n", " ");
+        
+        if (!string.IsNullOrWhiteSpace(rawCode))
+        {
+            AddLine($"/* Unsupported statement construction: {rawCode} */");
+        }
         
         return null;
     }
