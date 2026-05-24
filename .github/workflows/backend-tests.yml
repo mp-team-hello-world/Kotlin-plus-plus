@@ -3,11 +3,13 @@ name: Backend Tests
 on:
   push:
     paths:
-      - "Kotlin-plus-plus/**"
+      - "Kotlin-plus-plus/KotlinGrammatic/**"
+      - "Kotlin-plus-plus/TestTranslator/**"
       - ".github/workflows/backend-tests.yml"
   pull_request:
     paths:
-      - "Kotlin-plus-plus/**"
+      - "Kotlin-plus-plus/KotlinGrammatic/**"
+      - "Kotlin-plus-plus/TestTranslator/**"
       - ".github/workflows/backend-tests.yml"
 
 jobs:
@@ -24,7 +26,7 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Restore dependencies
-        run: dotnet restore Kotlin-plus-plus
+        run: dotnet restore Kotlin-plus-plus.csproj
 
       - name: Run tests
-        run: dotnet test Kotlin-plus-plus --logger "trx;LogFileName=test_results.trx"
+        run: dotnet test Kotlin-plus-plus.csproj --logger "trx;LogFileName=test_results.trx"
