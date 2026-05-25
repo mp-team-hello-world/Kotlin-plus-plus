@@ -39,13 +39,10 @@ expression:
 	| expression (LANGLE | RANGLE | LE | GE | EQEQ | EXCL_EQ) expression	# Comparison
 	| ID																	# Identifier
 	| INT																	# IntLiteral
-	| anyUnknownBlock														# UnknownBlock
-	| ID expression unknownTail												# UnknownPrefixExpr
-	| ID anyUnknownBlock													# UnknownBlockKeyword
-	| fallbackToken+														# DynamicFallbackExpr;
+	| anyUnknownBlock														# UnknownBlock;
 
 
-fallbackToken: 
+fallbackToken:
     ~(SEMICOLON | NL | LCURL | RCURL | VAL | VAR | FUN);
 
 unknownTail: anyUnknownBlock? ;
@@ -53,7 +50,7 @@ unknownTail: anyUnknownBlock? ;
 anyUnknownBlock: LCURL unknownBlockContent* RCURL;
 
 unknownBlockContent:
-    anyUnknownBlock 
+    anyUnknownBlock
     | ~(LCURL | RCURL);
 
 unparsedStatement:
@@ -107,4 +104,8 @@ parameter: ID NL* COLON NL* ID;
 
 functionBody: block | ASSIGNMENT NL* expression;
 
-assignment: ID ASSIGNMENT expression;
+assignment: ID ASSIGNMENT expression											# NormalAssignment
+	| ID ADD_ASSIGNMENT expression												# AddAssignment
+	| ID SUB_ASSIGNMENT expression												# SubAssignment
+	| ID MULT_ASSIGNMENT expression												# MultAssignment
+	| ID DIV_ASSIGNMENT expression												# DivAssignment;

@@ -32,11 +32,12 @@ public class MainFunctionalityTests
     [Test]
     public void Else_1()
     {
-        string input = "if (x > 5) x else 0";
+        string input = "if (x > 5 and y < 10) x else 0";
         string result = Translator.Translate(input);
 
         Assert.That(result, Does.Contain("else"));
     }
+
     [Test]
     public void For_Loop_1()
     {
@@ -49,14 +50,25 @@ public class MainFunctionalityTests
     [Test]
     public void For_Loop_2()
     {
-        string input = "for (i in 1..x) { i <= x }";
+        string input = "var x = 10\nfor (i in 1..x) { i = 5 }"; // не работает без \n или ;
         string result = Translator.Translate(input);
+        Assert.That(result, Does.Contain("auto x = 10;"));
         Assert.That(result, Does.Contain("for (int i = 1; i <= x; i++)"));
-        Assert.That(result, Does.Contain("i <= x"));
+        Assert.That(result, Does.Contain("i = 5"));
     }
 
     [Test]
-    public void Main_Functionality_1()
+    public void While_Loop_1()
+    {
+        string input = "var count = 0; while (count < 100 ) { count = count + 1 }"; // не работает без \n или ;
+        string result = Translator.Translate(input);
+        Assert.That(result, Does.Contain("while (count < 100)"));
+        Assert.That(result, Does.Contain("count < 100"));
+        Assert.That(result, Does.Contain("{\n    count = count + 1;\n}"));
+    }
+
+    [Test]
+    public void Main_Functionality_1_if_for_else()
     {
         string input = "if (x > 5) {for (i in 1..x) {val y = i}} else {val z = 0}";
         string result = Translator.Translate(input);
@@ -65,5 +77,69 @@ public class MainFunctionalityTests
         Assert.That(result, Does.Contain("for (int i = 1; i <= x; i++)"));
         Assert.That(result, Does.Contain("auto y = i;"));
         Assert.That(result, Does.Contain("auto z = 0;"));
+    }
+
+    [Test]
+    public void Main_Functionality_2_try_catch()
+    {
+        string input = @"fun testAllFeatures(limit: Int): Int {
+    var count = 0
+    while (count < 100) {
+        try {
+            count = count + 10
+        } catch (e: Exception) {
+            return -1
+        } finally {
+            count = count + 1
+        }
+    }
+    return count
+}";
+        string result = Translator.Translate(input);
+
+        Assert.That(result, Does.Contain("int testAllFeatures(int limit)"));
+        Assert.That(result, Does.Contain("auto count = 0;"));
+        Assert.That(result, Does.Contain("while (count < 100)"));
+        Assert.That(result, Does.Contain("try"));
+        Assert.That(result, Does.Contain("catch (const std::exception& e)"));
+        Assert.That(result, Does.Contain("return -1;"));
+        Assert.That(result, Does.Contain("count = count + 1;"));
+        Assert.That(result, Does.Contain("return count;"));
+    }
+
+    [Test]
+    public void Function_with_Try_Catch_Exception_1()
+    {
+        string input = @"fun complex(n: Int): Int {
+    var s = 0
+    for (i in 1..n) {
+        try {
+            s += i
+        } catch (e: Exception) {
+            return -1
+        }
+    }
+    return s
+}";
+        string result = Translator.Translate(input);
+
+        Assert.That(result, Does.Contain("int complex(int n)"));
+        Assert.That(result, Does.Contain("for (int i = 1; i <= n; i++)"));
+        Assert.That(result, Does.Contain("try"));
+        Assert.That(result, Does.Contain("return s;").Or.Contain("return -1;"));
+    }
+
+    [Test]
+    public void Function_with_Try_Catch_Exception_2()
+    {
+        string input = "try { readFile() } catch (io: IOException) { handleIo(io) } catch (ex: Exception) { handleGeneral(ex) }";
+        string result = Translator.Translate(input);
+
+        Assert.That(result, Does.Contain("try"));
+        Assert.That(result, Does.Contain("catch (").And.Contain("io"));
+        Assert.That(result, Does.Contain("/* Unimplemented function call: readFile() */"));
+        Assert.That(result, Does.Contain("/* Unimplemented function call: handleIo(io) */"));
+        Assert.That(result, Does.Contain("/* Unimplemented function call: handleGeneral(ex) */"));
+        Assert.That(result, Does.Contain("catch (").And.Contain("ex"));
     }
 }

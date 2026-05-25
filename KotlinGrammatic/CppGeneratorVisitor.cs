@@ -9,27 +9,27 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
 {
     private int _indentLevel = 0;
     private List<string> _output = new List<string>();
-    
+
     private string Indent => new string(' ', _indentLevel * 4);
-    
+
     private void AddLine(string line)
     {
         _output.Add(Indent + line);
     }
-    
+
     public string GetResult()
     {
         // Формируем финальный вывод
         var finalOutput = new List<string>();
-        
+
         finalOutput.Add("using namespace std;");
         finalOutput.Add("");
 
         finalOutput.AddRange(_output);
-        
+
         return string.Join("\n", finalOutput);
     }
-    
+
     // root: statements EOF;
     public override string VisitRoot(KotlinParser.RootContext context)
     {
@@ -37,21 +37,17 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         Visit(context.statements());
         return null;  // Не возвращаем ничего, всё уже в _output
     }
-    
+
     // statements: (statement (SEMICOLON? NL?)*)*
     public override string VisitStatements(KotlinParser.StatementsContext context)
     {
-        for (int i = 0; i < context.ChildCount; i++)
+        foreach (var statement in context.statement())
         {
-            var child = context.GetChild(i);
-            if (child is KotlinParser.StatementContext statement)
-            {
-                Visit(statement);
-            }
+            Visit(statement);
         }
         return null;
     }
-    
+
     // statement: variableDeclaration | ifExpression | forStatement | block | expression
     public override string VisitStatement(KotlinParser.StatementContext context)
     {
@@ -80,37 +76,37 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
     {
         return context.ID().GetText();
     }
-    
+
     public override string VisitIntLiteral(KotlinParser.IntLiteralContext context)
     {
         return context.INT().GetText();
     }
-    
+
     public override string VisitParens(KotlinParser.ParensContext context)
     {
         return $"({Visit(context.expression())})";
     }
-    
+
     public override string VisitUnaryMinus(KotlinParser.UnaryMinusContext context)
     {
         return $"-{Visit(context.expression())}";
     }
-    
+
     public override string VisitMulDiv(KotlinParser.MulDivContext context)
     {
         return $"{Visit(context.expression(0))} {context.GetChild(1).GetText()} {Visit(context.expression(1))}";
     }
-    
+
     public override string VisitAddSub(KotlinParser.AddSubContext context)
     {
         return $"{Visit(context.expression(0))} {context.GetChild(1).GetText()} {Visit(context.expression(1))}";
     }
-    
+
     public override string VisitComparison(KotlinParser.ComparisonContext context)
     {
         return $"{Visit(context.expression(0))} {context.GetChild(1).GetText()} {Visit(context.expression(1))}";
     }
-    
+
     // variableDeclaration: (VAL | VAR) ID ASSIGNMENT expression;
     public override string VisitVariableDeclaration(KotlinParser.VariableDeclarationContext context)
     {
@@ -121,49 +117,73 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
             int b = context.Stop.TokenIndex;
             var interval = Antlr4.Runtime.Misc.Interval.Of(context.Start.StartIndex, context.Stop.StopIndex);
             string rawStatement = context.Start.InputStream.GetText(interval).Trim().Replace("\r", "").Replace("\n", " ");
-            
+
             AddLine($"/* Unsupported variable declaration syntax: {rawStatement} */");
             return null;
         }
 
         string exprText = context.expression().GetText();
 
-        if (exprText.StartsWith("listOf") || 
-            exprText.StartsWith("mapOf") || 
-            context.expression() is KotlinParser.DynamicFallbackExprContext)
+        if (exprText.StartsWith("listOf") ||
+            exprText.StartsWith("mapOf"))
         {
             // Исправлено: забираем сырой текст с сохранением всех пробелов
             var interval = Antlr4.Runtime.Misc.Interval.Of(context.Start.StartIndex, context.Stop.StopIndex);
             string rawStatement = context.Start.InputStream.GetText(interval).Trim().Replace("\r", "").Replace("\n", " ");
-            
+
             AddLine($"/* Unsupported variable declaration (contains unimplemented features): {rawStatement} */");
             return null;
         }
 
         string varName = context.ID()?.GetText() ?? "unknownVar";
         string modifier = context.VAL() != null ? "const auto" : "auto";
-        
+
         string value = Visit(context.expression());
         AddLine($"{modifier} {varName} = {value};");
-        
+
         return null;
     }
-    
-    public override string VisitAssignment(KotlinParser.AssignmentContext context)
+
+    public override string VisitNormalAssignment(KotlinParser.NormalAssignmentContext context)
     {
-        string id = context.ID()?.GetText() ?? "unknown";
-        if (context.expression() != null)
-        {
-            AddLine($"{id} = {Visit(context.expression())};");
-        }
-        else
-        {
-            AddLine($"/* Broken assignment: {context.GetText().Trim()} */");
-        }
+        var id = context.ID().GetText();
+        var expr = Visit(context.expression());
+        AddLine($"{id} = {expr};");
         return null;
     }
-    
-    
+
+    public override string VisitAddAssignment(KotlinParser.AddAssignmentContext context)
+    {
+        var id = context.ID().GetText();
+        var expr = Visit(context.expression());
+        AddLine($"{id} += {expr};");
+        return null;
+    }
+
+    public override string VisitSubAssignment(KotlinParser.SubAssignmentContext context)
+    {
+        var id = context.ID().GetText();
+        var expr = Visit(context.expression());
+        AddLine($"{id} -= {expr};");
+        return null;
+    }
+
+    public override string VisitMultAssignment(KotlinParser.MultAssignmentContext context)
+    {
+        var id = context.ID().GetText();
+        var expr = Visit(context.expression());
+        AddLine($"{id} *= {expr};");
+        return null;
+    }
+
+    public override string VisitDivAssignment(KotlinParser.DivAssignmentContext context)
+    {
+        var id = context.ID().GetText();
+        var expr = Visit(context.expression());
+        AddLine($"{id} /= {expr};");
+        return null;
+    }
+
     // block: LCURL statements RCURL;
     public override string VisitBlock(KotlinParser.BlockContext context)
     {
@@ -187,13 +207,13 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         }
         return null;
     }
-    
+
     // ifExpression: IF LPAREN expression RPAREN controlStructureBody (ELSE controlStructureBody)?
     public override string VisitIfExpression(KotlinParser.IfExpressionContext context)
     {
         AddLine($"if ({Visit(context.expression())})");
         Visit(context.controlStructureBody(0));
-        
+
         if (context.controlStructureBody().Length > 1)
         {
             AddLine("else");
@@ -201,15 +221,15 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         }
         return null;
     }
-    
-    
+
+
     public override string VisitForStatement(KotlinParser.ForStatementContext context)
     {
         AddLine($"for (int {context.ID().GetText()} = {Visit(context.expression(0))}; {context.ID().GetText()} <= {Visit(context.expression(1))}; {context.ID().GetText()}++)");
         Visit(context.controlStructureBody());
         return null;
     }
-    
+
     public override string VisitWhileStatement(KotlinParser.WhileStatementContext context)
     {
         AddLine($"while ({Visit(context.expression())})");
@@ -219,7 +239,7 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
             AddLine(";");
         return null;
     }
-    
+
     public override string VisitDoWhileStatement(KotlinParser.DoWhileStatementContext context)
     {
         AddLine("do");
@@ -234,7 +254,7 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
     public override string VisitFunctionDeclaration(KotlinParser.FunctionDeclarationContext context)
     {
         string funcName = context.ID()[0].GetText();
-        
+
         // Параметры
         var parameters = new List<string>();
         if (context.parameter() != null)
@@ -246,7 +266,7 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
                 parameters.Add($"{type} {name}");
             }
         }
-        
+
         // Возвращаемый тип
         string returnType;
         if (funcName == "main")
@@ -263,7 +283,7 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         {
             returnType = "void";
         }
-        
+
         AddLine($"{returnType} {funcName}({string.Join(", ", parameters)})");
 
         if (funcName == "main")
@@ -280,7 +300,7 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
                 _indentLevel--;
                 AddLine("}");
             }
-            else 
+            else
             {
                 Visit(body);
             }
@@ -292,7 +312,7 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         AddLine("");
         return null;
     }
-    
+
     public override string VisitFunctionBody(KotlinParser.FunctionBodyContext context)
     {
         if (context.block() != null)
@@ -309,7 +329,7 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         }
         return null;
     }
-    
+
     private string ConvertType(string kotlinType) => kotlinType switch
     {
         "Int" => "int",
@@ -317,9 +337,9 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         "Unit" => "void",
         _ => "auto"
     };
-    
+
     // ==================== ПРЫЖКИ ====================
-    
+
     public override string VisitJumpExpression(KotlinParser.JumpExpressionContext context)
     {
         if (context.RETURN() != null)
@@ -332,20 +352,59 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
             AddLine($"// throw {Visit(context.expression())}");
         return null;
     }
-    
+
     // ==================== ОБРАБОТКА ИСКЛЮЧЕНИЙ ====================
-    
+
     public override string VisitTryExpression(KotlinParser.TryExpressionContext context)
     {
         AddLine("try");
         Visit(context.block());
-        
+
         foreach (var catchBlock in context.catchBlock())
         {
-            AddLine("catch (...)"); // Упрощённо, тип игнорируем
+            string paramName = "e";
+            string kotlinType = null;
+
+            if (catchBlock.ID().Length >= 1)
+            {
+                // Если грамматика даёт ID(0) как имя и ID(1) как тип
+                if (catchBlock.ID().Length == 1)
+                {
+                    // Возможно только имя без типа: catch (e)
+                    paramName = catchBlock.ID(0).GetText();
+                }
+                else if (catchBlock.ID().Length >= 2)
+                {
+                    paramName = catchBlock.ID(0).GetText();
+                    kotlinType = catchBlock.ID(1).GetText();
+                }
+            }
+
+            // Маппинг Kotlin типа на C++ тип
+            string cppType;
+            if (string.IsNullOrEmpty(kotlinType))
+            {
+                // Если тип не указан — используем универсальный catch
+                AddLine("catch (...)");
+                Visit(catchBlock.block());
+                continue;
+            }
+            else
+            {
+                // Exception -> std::exception
+                cppType = kotlinType switch
+                {
+                    "Exception" => "const std::exception&",
+                    "IOException" => "const std::ios_base::failure&",
+                    // добавим другие при необхоимости
+                    _ => "const std::exception&"
+                };
+            }
+
+            AddLine($"catch ({cppType} {paramName})");
             Visit(catchBlock.block());
         }
-        
+
         if (context.finallyBlock() != null)
         {
             AddLine("// finally");
@@ -356,53 +415,23 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
 
     public override string VisitFunctionCall(KotlinParser.FunctionCallContext context)
     {
-        return $"/* Unimplemented function call: {context.GetText()} */";
+        // Исправлено: забираем сырой текст с сохранением всех пробелов
+        var interval = Antlr4.Runtime.Misc.Interval.Of(context.Start.StartIndex, context.Stop.StopIndex);
+        string rawCode = context.Start.InputStream.GetText(interval).Trim().Replace("\r", "").Replace("\n", " ");
+        return $"/* Unimplemented function call: {rawCode} */";
     }
 
-    public override string VisitUnknownPrefixExpr(KotlinParser.UnknownPrefixExprContext context)
-    {
-        // Извлекаем чистый текст всей конструкции (например, when(x){1->println(1)else->println(0)})
-        string fullText = context.GetText().Trim();
-        
-        // Заменяем переносы строк на пробелы, чтобы комментарий оставался аккуратным
-        fullText = fullText.Replace("\r", "").Replace("\n", " ");
-        
-        // Ограничим длину, если это огромный кусок кода
-        if (fullText.Length > 70) 
-            fullText = fullText.Substring(0, 67) + "...";
-
-        return $"/* Unsupported construction: {fullText} */";
-    }
-
-    public override string VisitUnknownBlockKeyword(KotlinParser.UnknownBlockKeywordContext context)
-    {
-        return $"/* Unsupported block keyword construction: {context.ID().GetText()} {{...}} */";
-    }
-
-    public override string VisitUnknownBlock(KotlinParser.UnknownBlockContext context)
-    {
-        return "/* Unsupported standalone block / lambda */";
-    }
-
-    public override string VisitDynamicFallbackExpr(KotlinParser.DynamicFallbackExprContext context)
-    {
-        // Извлекаем сырой текст (цепочку методов или инкременты) и убираем переносы
-        string rawText = context.GetText().Trim().Replace("\r", "").Replace("\n", " ");
-        
-        
-        return $"/* Unsupported expression syntax: {rawText} */";
-    }
     public override string VisitUnparsedStatement(KotlinParser.UnparsedStatementContext context)
     {
         // Исправлено: сохраняем пробелы между val и переменными
         var interval = Antlr4.Runtime.Misc.Interval.Of(context.Start.StartIndex, context.Stop.StopIndex);
         string rawCode = context.Start.InputStream.GetText(interval).Trim().Replace("\r", "").Replace("\n", " ");
-        
+
         if (!string.IsNullOrWhiteSpace(rawCode))
         {
             AddLine($"/* Unsupported statement construction: {rawCode} */");
         }
-        
+
         return null;
     }
 }
