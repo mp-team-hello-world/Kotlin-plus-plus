@@ -82,6 +82,16 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         return context.INT().GetText();
     }
 
+    public override string VisitDoubleLiteral(KotlinParser.DoubleLiteralContext context)
+    {
+        return context.DOUBLE().GetText();
+    }
+
+    public override string VisitStringLiteral(KotlinParser.StringLiteralContext context)
+    {
+        return context.STRING_LITERAL().GetText();
+    }
+
     public override string VisitParens(KotlinParser.ParensContext context)
     {
         return $"({Visit(context.expression())})";
@@ -90,6 +100,11 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
     public override string VisitUnaryMinus(KotlinParser.UnaryMinusContext context)
     {
         return $"-{Visit(context.expression())}";
+    }
+
+    public override string VisitUnaryNot(KotlinParser.UnaryNotContext context)
+    {
+        return $"!{Visit(context.expression())}";
     }
 
     public override string VisitMulDiv(KotlinParser.MulDivContext context)
@@ -334,7 +349,12 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
     {
         "Int" => "int",
         "Boolean" => "bool",
+        "Long" => "long",
         "Unit" => "void",
+        "Char" => "char",
+        "Float" => "float",
+        "Double" => "double",
+        "String" => "std::string",
         _ => "auto"
     };
 
@@ -343,7 +363,7 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
     public override string VisitJumpExpression(KotlinParser.JumpExpressionContext context)
     {
         if (context.RETURN() != null)
-            AddLine(context.expression() != null ? $"return {Visit(context.expression())};" : "return;");
+            AddLine($"return {Visit(context.expression())};");
         else if (context.CONTINUE() != null)
             AddLine("continue;");
         else if (context.BREAK() != null)
@@ -433,5 +453,24 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         }
 
         return null;
+    }
+    // ==================== ЛОГИЧЕСКИЕ ОПЕРАТОРЫ ====================
+    public override string VisitAndOp(KotlinParser.AndOpContext ctx)
+    {
+        return $"{Visit(ctx.expression(0))} && {Visit(ctx.expression(1))}";
+    }
+
+    public override string VisitOrOp(KotlinParser.OrOpContext ctx)
+    {
+        return $"{Visit(ctx.expression(0))} || {Visit(ctx.expression(1))}";
+    }
+    public override string VisitAndLogical(KotlinParser.AndLogicalContext ctx)
+    {
+        return $"{Visit(ctx.expression(0))} && {Visit(ctx.expression(1))}";
+    }
+
+    public override string VisitOrLogical(KotlinParser.OrLogicalContext ctx)
+    {
+        return $"{Visit(ctx.expression(0))} || {Visit(ctx.expression(1))}";
     }
 }

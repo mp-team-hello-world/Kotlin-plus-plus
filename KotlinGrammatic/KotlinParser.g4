@@ -34,11 +34,18 @@ expression:
 	LPAREN expression RPAREN												# Parens
 	| expression LPAREN (expression (COMMA expression)*)? RPAREN			# FunctionCall
 	| SUB expression														# UnaryMinus
+	| EXCL_NO_WS expression   												# UnaryNot
 	| expression (MULT | DIV | MOD) expression								# MulDiv
 	| expression (ADD | SUB) expression										# AddSub
 	| expression (LANGLE | RANGLE | LE | GE | EQEQ | EXCL_EQ) expression	# Comparison
+	| expression AND expression												# AndOp
+	| expression OR expression												# OrOp
+	| expression CONJ expression											# AndLogical
+	| expression DISJ expression											# OrLogical
 	| ID																	# Identifier
 	| INT																	# IntLiteral
+	| DOUBLE																# DoubleLiteral
+	| STRING_LITERAL   														# StringLiteral
 	| anyUnknownBlock														# UnknownBlock;
 
 

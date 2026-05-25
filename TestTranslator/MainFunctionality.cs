@@ -35,6 +35,7 @@ public class MainFunctionalityTests
         string input = "if (x > 5 and y < 10) x else 0";
         string result = Translator.Translate(input);
 
+        Assert.That(result, Does.Contain("if (x > 5 && y < 10)"));
         Assert.That(result, Does.Contain("else"));
     }
 
@@ -103,6 +104,7 @@ public class MainFunctionalityTests
         Assert.That(result, Does.Contain("try"));
         Assert.That(result, Does.Contain("catch (const std::exception& e)"));
         Assert.That(result, Does.Contain("return -1;"));
+        Assert.That(result, Does.Contain("// finally"));
         Assert.That(result, Does.Contain("count = count + 1;"));
         Assert.That(result, Does.Contain("return count;"));
     }
@@ -126,7 +128,9 @@ public class MainFunctionalityTests
         Assert.That(result, Does.Contain("int complex(int n)"));
         Assert.That(result, Does.Contain("for (int i = 1; i <= n; i++)"));
         Assert.That(result, Does.Contain("try"));
-        Assert.That(result, Does.Contain("return s;").Or.Contain("return -1;"));
+        Assert.That(result, Does.Contain("catch (const std::exception& e)"));
+        Assert.That(result, Does.Contain("return -1;"));
+        Assert.That(result, Does.Contain("return s;"));
     }
 
     [Test]
@@ -141,5 +145,18 @@ public class MainFunctionalityTests
         Assert.That(result, Does.Contain("/* Unimplemented function call: handleIo(io) */"));
         Assert.That(result, Does.Contain("/* Unimplemented function call: handleGeneral(ex) */"));
         Assert.That(result, Does.Contain("catch (").And.Contain("ex"));
+    }
+
+    [Test]
+    public void Function_with_Try_Catch_Exception_3()
+    {
+        string input = @"try {
+    readFile()
+} catch (io: IOException) {
+    handleIo(io)
+}";
+        string result = Translator.Translate(input);
+
+        Assert.That(result, Does.Contain("catch (const std::ios_base::failure& io)"));
     }
 }

@@ -15,6 +15,8 @@ fragment Hidden: DelimitedComment | LineComment | WS;
 IF: 'if';
 ELSE: 'else';
 FOR: 'for';
+AND: 'and';
+OR: 'or';
 IN: 'in';
 VAL: 'val';
 VAR: 'var';
@@ -62,5 +64,9 @@ GE: '>=';
 EXCL_EQ: '!=';
 EQEQ: '==';
 
+STRING_LITERAL
+    : '"' ( ~["\\] | '\\' . )* '"'
+    ;
 ID: [a-zA-Z_][a-zA-Z0-9_]*;
 INT: [0-9]+;
+DOUBLE: [0-9]+ '.' [0-9]+;
