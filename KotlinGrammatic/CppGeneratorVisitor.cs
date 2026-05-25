@@ -5,6 +5,8 @@ using Antlr4.Runtime.Tree;
 
 namespace Kotlin_plus_plus;
 
+// TODO: фабрика? ООП
+
 public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
 {
     private int _indentLevel = 0;
