@@ -2,15 +2,13 @@ name: Backend Tests
 
 on:
   push:
-    paths:
-      - "Kotlin-plus-plus/KotlinGrammatic/**"
-      - "Kotlin-plus-plus/TestTranslator/**"
-      - ".github/workflows/backend-tests.yml"
+    branches:
+      - main
+      - tests
   pull_request:
-    paths:
-      - "Kotlin-plus-plus/KotlinGrammatic/**"
-      - "Kotlin-plus-plus/TestTranslator/**"
-      - ".github/workflows/backend-tests.yml"
+    branches:
+      - main
+      - tests
 
 jobs:
   test:
