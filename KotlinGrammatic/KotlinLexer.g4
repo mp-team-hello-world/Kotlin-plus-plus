@@ -18,6 +18,16 @@ FOR: 'for';
 IN: 'in';
 VAL: 'val';
 VAR: 'var';
+WHILE: 'while';
+THROW: 'throw';
+RETURN: 'return';
+CONTINUE: 'continue';
+BREAK: 'break';
+FUN: 'fun';
+TRY: 'try';
+CATCH: 'catch';
+FINALLY: 'finally';
+DO: 'do';
 
 LPAREN: '(';
 RPAREN: ')';
