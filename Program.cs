@@ -40,19 +40,9 @@ app.MapPost("/translate", (TranslateRequest request) =>
 
     try
     {
-        // Вставляем вашу логику ANTLR: берем код из запроса (request.Code)
-        var inputStream = new AntlrInputStream(request.Code);
-        var lexer = new KotlinLexer(inputStream);
-        var tokenStream = new CommonTokenStream(lexer);
-        var parser = new KotlinParser(tokenStream);
-
-        var tree = parser.root();
-
-        var visitor = new CppGeneratorVisitor();
-        visitor.Visit(tree);
-        
+        // Вставляем вашу логику ANTLR: берем код из запроса (request.Code) и прогоняем его через парсер и генератор
         // Возвращаем результат обратно на сайт в JSON-формате
-        return Results.Ok(new { cppCode = visitor.GetResult() });
+        return Results.Ok(new { cppCode = Translator.Translate(request.Code) });
     }
     catch (Exception ex)
     {

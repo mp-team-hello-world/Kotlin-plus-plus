@@ -1,0 +1,49 @@
+name: Backend Tests
+
+on:
+  push:
+    branches:
+      - main
+      - tests
+  pull_request:
+    branches:
+      - main
+      - tests
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Install Java (required for ANTLR)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Download ANTLR
+        run: |
+          mkdir antlr
+          curl -o antlr/antlr.jar https://www.antlr.org/download/antlr-4.13.2-complete.jar
+
+      - name: Generate ANTLR lexer
+        run: |
+          java -jar antlr/antlr.jar -Dlanguage=CSharp KotlinGrammatic/KotlinLexer.g4
+
+      - name: Generate ANTLR parser
+        run: |
+          java -jar antlr/antlr.jar -Dlanguage=CSharp -visitor KotlinGrammatic/KotlinParser.g4
+
+      - name: Restore dependencies
+        run: dotnet restore Kotlin-plus-plus.csproj
+
+      - name: Run tests
+        run: dotnet test Kotlin-plus-plus.csproj --logger "trx;LogFileName=test_results.trx"

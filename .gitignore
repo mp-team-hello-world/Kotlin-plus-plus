@@ -5,3 +5,14 @@ obj/
 Generated/
 
 .vscode/
+
+KotlinGrammatic/KotlinLexer.cs
+KotlinGrammatic/KotlinLexer.interp
+KotlinGrammatic/KotlinLexer.tokens
+KotlinGrammatic/KotlinParser.cs
+KotlinGrammatic/KotlinParser.interp
+KotlinGrammatic/KotlinParser.tokens
+KotlinGrammatic/KotlinParserBaseListener.cs
+KotlinGrammatic/KotlinParserBaseVisitor.cs
+KotlinGrammatic/KotlinParserListener.cs
+KotlinGrammatic/KotlinParserVisitor.cs
