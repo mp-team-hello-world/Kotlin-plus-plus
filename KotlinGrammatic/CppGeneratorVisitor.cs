@@ -435,10 +435,10 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
 
     public override string VisitFunctionCall(KotlinParser.FunctionCallContext context)
     {
-        // Исправлено: забираем сырой текст с сохранением всех пробелов
+        // Исправлено_2: все функции будут транслироваться
         var interval = Antlr4.Runtime.Misc.Interval.Of(context.Start.StartIndex, context.Stop.StopIndex);
         string rawCode = context.Start.InputStream.GetText(interval).Trim().Replace("\r", "").Replace("\n", " ");
-        return $"/* Unimplemented function call: {rawCode} */";
+        return rawCode;
     }
 
     public override string VisitUnparsedStatement(KotlinParser.UnparsedStatementContext context)

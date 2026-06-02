@@ -136,20 +136,6 @@ public class MainFunctionalityTests
     [Test]
     public void Function_with_Try_Catch_Exception_2()
     {
-        string input = "try { readFile() } catch (io: IOException) { handleIo(io) } catch (ex: Exception) { handleGeneral(ex) }";
-        string result = Translator.Translate(input);
-
-        Assert.That(result, Does.Contain("try"));
-        Assert.That(result, Does.Contain("catch (").And.Contain("io"));
-        Assert.That(result, Does.Contain("/* Unimplemented function call: readFile() */"));
-        Assert.That(result, Does.Contain("/* Unimplemented function call: handleIo(io) */"));
-        Assert.That(result, Does.Contain("/* Unimplemented function call: handleGeneral(ex) */"));
-        Assert.That(result, Does.Contain("catch (").And.Contain("ex"));
-    }
-
-    [Test]
-    public void Function_with_Try_Catch_Exception_3()
-    {
         string input = @"try {
     readFile()
 } catch (io: IOException) {
@@ -158,5 +144,54 @@ public class MainFunctionalityTests
         string result = Translator.Translate(input);
 
         Assert.That(result, Does.Contain("catch (const std::ios_base::failure& io)"));
+    }
+
+    [Test]
+    public void Main_Functionality_3_final()
+    {
+        string input = @"fun main() {
+    val score = processData(20)
+}
+
+fun processData(limit: Int): Int {
+    var result = 0
+
+    for (i in 1..limit) {
+        if (i > 10 && limit > 1000) {
+            break
+        } else {
+            result = result + i * i
+        }
+    }
+
+    while (result < 5000) {
+        try {
+            result *= 2
+        } catch (e: Exception) {
+            return -1
+        } finally {
+            result += 1
+        }
+    }
+
+    return result
+}";
+        string result = Translator.Translate(input);
+
+        Assert.That(result, Does.Contain("int main()"));
+        Assert.That(result, Does.Contain("auto score = processData(20);"));
+        Assert.That(result, Does.Contain("int processData(int limit)"));
+        Assert.That(result, Does.Contain("auto result = 0;"));
+        Assert.That(result, Does.Contain("for (int i = 1; i <= limit; i++)"));
+        Assert.That(result, Does.Contain("if (i > 10 && limit > 1000)"));
+        Assert.That(result, Does.Contain("break;"));
+        Assert.That(result, Does.Contain("result = result + i * i;"));
+        Assert.That(result, Does.Contain("while (result < 5000)"));
+        Assert.That(result, Does.Contain("try"));
+        Assert.That(result, Does.Contain("catch (const std::exception& e)"));
+        Assert.That(result, Does.Contain("return -1;"));
+        Assert.That(result, Does.Contain("// finally"));
+        Assert.That(result, Does.Contain("result += 1;"));
+        Assert.That(result, Does.Contain("return result;"));
     }
 }
