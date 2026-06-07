@@ -12,6 +12,8 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
 
     private string Indent => new string(' ', _indentLevel * 4);
 
+    private List<string> _prototypesOfFunctions = new();
+
     private void AddLine(string line)
     {
         _output.Add(Indent + line);
@@ -22,7 +24,15 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         // Формируем финальный вывод
         var finalOutput = new List<string>();
 
+        finalOutput.Add("#include <exception>");
+        finalOutput.Add("");
         finalOutput.Add("using namespace std;");
+        finalOutput.Add("");
+
+        foreach (var prototype in _prototypesOfFunctions)
+        {
+            finalOutput.Add(prototype);
+        }
         finalOutput.Add("");
 
         finalOutput.AddRange(_output);
@@ -299,7 +309,11 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
             returnType = "void";
         }
 
-        AddLine($"{returnType} {funcName}({string.Join(", ", parameters)})");
+        // Добавила формирование сигнатуры функции
+        string signature = $"{returnType} {funcName}({string.Join(", ", parameters)})";
+        if (funcName != "main")
+            _prototypesOfFunctions.Add(signature + ";");
+        AddLine(signature);
 
         if (funcName == "main")
         {
