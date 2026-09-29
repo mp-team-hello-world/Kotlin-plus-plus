@@ -7,7 +7,11 @@ const rightTextarea = document.getElementById('rightText');
 const loadFileBtn = document.getElementById('loadFileBtn');
 const loadArchiveBtn = document.getElementById('loadArchiveBtn');
 const translateBtn = document.getElementById('translateBtn');
+const viewTreeBtn = document.getElementById('viewTreeBtn');
 const downloadBtn = document.getElementById('downloadBtn');
+
+// Дерево разбора последнего успешного перевода (для кнопки View Tree)
+let lastTreeData = null;
 
 // Уведомления
 const progressToast = document.getElementById('progressToast');
@@ -63,7 +67,8 @@ async function translateText() {
     try {
         // !!! СЮДА ВСТАВЛЯЙТЕ ССЫЛКУ, КОТОРУЮ ВАМ ДАЕТ LOCALTUNNEL !!!
         // Обязательно добавьте /translate в конец адреса
-        const tunnelUrl = 'https://mkn-kotlin-compiler.loca.lt/translate';
+        //const tunnelUrl = 'https://mkn-kotlin-compiler.loca.lt/translate';
+        const tunnelUrl = 'http://localhost:5000/translate'
 
         const response = await fetch(tunnelUrl, {
             method: 'POST',
@@ -85,12 +90,19 @@ async function translateText() {
         
         // Записываем полученный C++ код в правое поле
         rightTextarea.value = data.cppCode;
+
+        // Сохраняем дерево разбора и включаем кнопку View Tree
+        lastTreeData = data.tree || null;
+        viewTreeBtn.disabled = !lastTreeData;
         
     } catch (error) {
         console.error("Ошибка трансляции:", error);
         
         // Выводим ошибку в правое поле красивым текстом, чтобы пользователь понял, что пошло не так
         rightTextarea.value = `/* \n[ОШИБКА ТРАНСЛЯЦИИ]\nНе удалось связаться с сервером или парсер ANTLR обнаружил ошибку:\n${error.message}\n*/`;
+
+        lastTreeData = null;
+        viewTreeBtn.disabled = true;
     } finally {
         // В любом случае обновляем высоту правого текстового поля
         autoResize(rightTextarea);
@@ -282,6 +294,10 @@ loadArchiveBtn.addEventListener('click', showInProgressMessage);
 
 translateBtn.addEventListener('click', () => {
     if (!translateBtn.disabled) translateText();
+});
+
+viewTreeBtn.addEventListener('click', () => {
+    if (lastTreeData) TreeView.open(lastTreeData);
 });
 
 downloadBtn.addEventListener('click', openFilenameModal);

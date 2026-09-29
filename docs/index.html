@@ -17,6 +17,7 @@
             <button class="btn" id="loadFileBtn">Load File</button>
             <button class="btn" id="loadArchiveBtn">Load Archive</button>
             <button class="btn btn-translate" id="translateBtn">Translate</button>
+            <button class="btn" id="viewTreeBtn" disabled>View Tree</button>
             <button class="btn" id="downloadBtn">Download</button>
         </div>
 
@@ -71,6 +72,26 @@
         </div>
     </div>
 
+    <!-- Экран с деревом разбора (открывается кнопкой View Tree) -->
+    <div id="treeScreen" class="tree-screen">
+        <div class="tree-screen-header">
+            <div class="tree-screen-title">🌳 Parse Tree</div>
+            <div class="tree-toolbar">
+                <button class="tree-tool-btn" id="treeExpandBtn">Expand All</button>
+                <button class="tree-tool-btn" id="treeCollapseBtn">Collapse</button>
+                <button class="tree-tool-btn" id="treeFitBtn">Fit to screen</button>
+                <span class="tree-legend">
+                    <span class="tree-swatch rule"></span>Rule
+                    <span class="tree-swatch token"></span>Token
+                </span>
+            </div>
+            <button class="tree-close-btn" id="closeTreeBtn">&times;</button>
+        </div>
+        <div id="treeContainer" class="tree-canvas"></div>
+    </div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="tree-view.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
