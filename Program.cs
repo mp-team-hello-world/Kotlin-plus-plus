@@ -40,9 +40,10 @@ app.MapPost("/translate", (TranslateRequest request) =>
 
     try
     {
-        // Вставляем вашу логику ANTLR: берем код из запроса (request.Code) и прогоняем его через парсер и генератор
-        // Возвращаем результат обратно на сайт в JSON-формате
-        return Results.Ok(new { cppCode = Translator.Translate(request.Code) });
+        // Translator.TranslateWithTree возвращает и C++ код, и дерево разбора вместе.
+        // Обычный Translator.Translate (string) остаётся нетронутым для тестов.
+        var (cppCode, tree) = Translator.TranslateWithTree(request.Code);
+        return Results.Ok(new { cppCode, tree });
     }
     catch (Exception ex)
     {

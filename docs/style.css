@@ -403,3 +403,170 @@ body {
         bottom: 6px;
     }
 }
+
+/* ============================
+   PARSE TREE SCREEN
+   ============================ */
+
+.tree-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    background: #f4f6fa;
+    display: none;
+    flex-direction: column;
+    opacity: 0;
+    transform: scale(0.98);
+    transition: opacity 0.22s ease, transform 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.tree-screen.show {
+    display: flex;
+    opacity: 1;
+    transform: scale(1);
+}
+
+.tree-screen-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 16px 28px;
+    background: #ffffff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    z-index: 1;
+}
+
+.tree-screen-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.2px;
+    white-space: nowrap;
+}
+
+.tree-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.tree-tool-btn {
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Inter', system-ui, sans-serif;
+    border: 1px solid #e2e8f0;
+    border-radius: 60px;
+    background: white;
+    color: #1e293b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tree-tool-btn:hover {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px -8px rgba(59,130,246,0.4);
+}
+
+.tree-legend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #5b6e8c;
+    font-weight: 600;
+    margin-left: 8px;
+    white-space: nowrap;
+}
+
+.tree-swatch {
+    width: 11px;
+    height: 11px;
+    display: inline-block;
+    margin-left: 10px;
+}
+.tree-swatch:first-child { margin-left: 0; }
+.tree-swatch.rule {
+    border-radius: 3px;
+    background: #eff6ff;
+    border: 1.5px solid #93c5fd;
+}
+.tree-swatch.token {
+    border-radius: 6px;
+    background: #ecfdf5;
+    border: 1.5px solid #6ee7b7;
+}
+
+.tree-close-btn {
+    background: none;
+    border: none;
+    font-size: 30px;
+    line-height: 1;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.tree-close-btn:hover {
+    color: #1e293b;
+    background: #f1f5f9;
+}
+
+.tree-canvas {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    background:
+        radial-gradient(circle, #dbe4f0 1.2px, transparent 1.2px) 0 0 / 26px 26px,
+        #fbfcfe;
+    cursor: grab;
+}
+.tree-canvas:active { cursor: grabbing; }
+
+/* Узлы дерева */
+.tree-node { cursor: pointer; }
+.tree-node rect {
+    stroke-width: 1.6px;
+    transition: stroke .15s, filter .15s;
+}
+.tree-node.rule rect { fill: #eff6ff; stroke: #93c5fd; }
+.tree-node.rule:hover rect { stroke: #3b82f6; filter: brightness(1.03); }
+.tree-node.token rect { fill: #ecfdf5; stroke: #6ee7b7; }
+.tree-node.token:hover rect { stroke: #10b981; filter: brightness(1.03); }
+
+.tree-node.collapsed rect { stroke-dasharray: 4 3; }
+
+.tree-node.rule text {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+    fill: #1e3a8a;
+}
+.tree-node.token text {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-weight: 600;
+    font-size: 13px;
+    fill: #065f46;
+}
+.tree-node text { pointer-events: none; user-select: none; }
+
+.tree-link { fill: none; stroke: #cbd5e1; stroke-width: 1.6px; }
+.tree-link.token { stroke: #a7d8bf; }
+
+@media (max-width: 768px) {
+    .tree-screen-header {
+        flex-wrap: wrap;
+        padding: 14px 16px;
+    }
+    .tree-legend { margin-left: 0; }
+}

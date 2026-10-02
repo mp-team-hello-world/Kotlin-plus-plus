@@ -16,3 +16,5 @@ KotlinGrammatic/KotlinParserBaseListener.cs
 KotlinGrammatic/KotlinParserBaseVisitor.cs
 KotlinGrammatic/KotlinParserListener.cs
 KotlinGrammatic/KotlinParserVisitor.cs
+
+global.json
