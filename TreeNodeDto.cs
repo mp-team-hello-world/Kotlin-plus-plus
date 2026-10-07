@@ -12,4 +12,8 @@ public class TreeNodeDto
     // Список дочерних узлов (если пустой — сериализатор его не проигнорирует, но фронтенд с ним справится)
     [JsonPropertyName("children")]
     public List<TreeNodeDto> Children { get; set; } = new();
+
+    // Оригинальный кусок Kotlin-кода, который покрывает этот узел
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = string.Empty;
 }

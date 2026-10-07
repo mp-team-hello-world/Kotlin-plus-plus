@@ -13,6 +13,16 @@ const TreeView = (function () {
   const collapseBtn = document.getElementById("treeCollapseBtn");
   const fitBtn = document.getElementById("treeFitBtn");
 
+  const codePanel = document.getElementById("nodeCodePanel");
+  const codeTitle = document.getElementById("nodeCodeTitle");
+  const codeContent = document.getElementById("nodeCodeContent");
+  const codeCloseBtn = document.getElementById("nodeCodeCloseBtn");
+
+  let selectedId = null;
+
+  // ПКМ по пустому холсту не должна открывать системное меню браузера
+  container.addEventListener("contextmenu", (e) => e.preventDefault());
+
   const LEVEL_HEIGHT = 110; // вертикальный шаг между уровнями
   const UNIT = 20;          // базовая единица для separation()
   const NODE_H = 34;        // высота коробки узла
@@ -91,10 +101,15 @@ const TreeView = (function () {
       .attr("class", d => "tree-node " + (d._token ? "token" : "rule"))
       .attr("transform", () => `translate(${source.x0 ?? source.x ?? 0},${source.y0 ?? source.y ?? 0})`)
       .style("opacity", 0)
-      .on("click", (event, d) => { toggle(d); update(d); });
+      .on("click", (event, d) => { toggle(d); update(d); })
+      .on("contextmenu", (event, d) => {
+        event.preventDefault();
+        event.stopPropagation();
+        selectNode(d, event);
+      });
 
     nodeEnter.append("title")
-      .text(d => (d.children || d._children) ? "Клик — свернуть/развернуть" : d.data.name);
+      .text(d => ((d.children || d._children) ? "Клик — свернуть/развернуть. " : "") + "ПКМ — показать код");
 
     nodeEnter.append("rect")
       .attr("rx", d => d._token ? 14 : 7)
@@ -112,6 +127,7 @@ const TreeView = (function () {
     const nodeUpdate = nodeEnter.merge(node);
 
     nodeUpdate.classed("collapsed", d => !!d._children);
+    nodeUpdate.classed("selected", d => d.id === selectedId);
 
     nodeUpdate.transition().duration(350)
       .attr("transform", d => `translate(${d.x},${d.y})`)
@@ -144,6 +160,53 @@ const TreeView = (function () {
     nodes.forEach(d => { d.x0 = d.x; d.y0 = d.y; });
   }
 
+  function selectNode(d, event) {
+    selectedId = d.id;
+    g.selectAll("g.tree-node").classed("selected", n => n.id === selectedId);
+    showNodeCode(d, event);
+  }
+
+  function showNodeCode(d, event) {
+    const token = d._token;
+    codeTitle.textContent = token ? `Токен ${d.data.name}` : `Правило: ${d.data.name}`;
+    const text = d.data.source;
+    codeContent.textContent = (text && text.length) ? text : "(нет исходного текста для этого узла)";
+
+    // Сначала показываем (невидимо для глаз, но уже в потоке), чтобы измерить реальный размер карточки
+    codePanel.classList.add("show");
+    codePanel.style.visibility = "hidden";
+    const pw = codePanel.offsetWidth;
+    const ph = codePanel.offsetHeight;
+    codePanel.style.visibility = "";
+
+    const margin = 14;
+    let x = event.clientX + 14;
+    let y = event.clientY + 14;
+    if (x + pw + margin > window.innerWidth) x = event.clientX - pw - 14;
+    if (y + ph + margin > window.innerHeight) y = event.clientY - ph - 14;
+    x = Math.max(margin, Math.min(x, window.innerWidth - pw - margin));
+    y = Math.max(margin, Math.min(y, window.innerHeight - ph - margin));
+
+    codePanel.style.left = x + "px";
+    codePanel.style.top = y + "px";
+  }
+
+  function hideNodeCode() {
+    codePanel.classList.remove("show");
+    selectedId = null;
+    if (root) {
+      g.selectAll("g.tree-node").classed("selected", false);
+    }
+  }
+
+  // Клик мимо карточки (по холсту, по фону, по шапке экрана) её закрывает.
+  // Для самого ПКМ по узлу это не мешает: contextmenu у браузера клика не порождает.
+  document.addEventListener("click", (event) => {
+    if (codePanel.classList.contains("show") && !codePanel.contains(event.target)) {
+      hideNodeCode();
+    }
+  });
+
   function fitToScreen(animate) {
     if (!g || g.selectAll("g.tree-node").empty()) return;
     const bounds = g.node().getBBox();
@@ -166,6 +229,8 @@ const TreeView = (function () {
     if (!data) return;
     initSvg();
     nodeIdCounter = 0;
+    selectedId = null;
+    codePanel.classList.remove("show");
 
     root = d3.hierarchy(data, d => (d.children && d.children.length ? d.children : null));
     root.x0 = 0;
@@ -196,15 +261,19 @@ const TreeView = (function () {
 
   function close() {
     screen.classList.remove("show");
+    hideNodeCode();
   }
 
   closeBtn.addEventListener("click", close);
   expandBtn.addEventListener("click", expandAll);
   collapseBtn.addEventListener("click", collapseToRoot);
   fitBtn.addEventListener("click", () => fitToScreen(true));
+  codeCloseBtn.addEventListener("click", hideNodeCode);
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && screen.classList.contains("show")) close();
+    if (e.key !== "Escape" || !screen.classList.contains("show")) return;
+    if (codePanel.classList.contains("show")) hideNodeCode();
+    else close();
   });
 
   window.addEventListener("resize", () => {
