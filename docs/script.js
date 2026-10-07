@@ -68,6 +68,7 @@ async function translateText() {
         // !!! СЮДА ВСТАВЛЯЙТЕ ССЫЛКУ, КОТОРУЮ ВАМ ДАЕТ LOCALTUNNEL !!!
         // Обязательно добавьте /translate в конец адреса
         const tunnelUrl = 'https://mkn-kotlin-compiler.loca.lt/translate';
+        // const tunnelUrl = 'http://localhost:5000/translate' - для локального тестирования
 
         const response = await fetch(tunnelUrl, {
             method: 'POST',

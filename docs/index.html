@@ -83,11 +83,21 @@
                 <span class="tree-legend">
                     <span class="tree-swatch rule"></span>Rule
                     <span class="tree-swatch token"></span>Token
+                    <span class="tree-hint">ПКМ по узлу — показать код</span>
                 </span>
             </div>
             <button class="tree-close-btn" id="closeTreeBtn">&times;</button>
         </div>
         <div id="treeContainer" class="tree-canvas"></div>
+
+        <!-- Панель с кодом, который покрывает выбранный узел -->
+        <div id="nodeCodePanel" class="node-code-panel">
+            <div class="node-code-header">
+                <span class="node-code-title" id="nodeCodeTitle">Node</span>
+                <button class="node-code-close" id="nodeCodeCloseBtn">&times;</button>
+            </div>
+            <pre class="node-code-content" id="nodeCodeContent"></pre>
+        </div>
     </div>
 
     <script src="https://d3js.org/d3.v7.min.js"></script>

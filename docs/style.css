@@ -491,6 +491,14 @@ body {
     margin-left: 10px;
 }
 .tree-swatch:first-child { margin-left: 0; }
+
+.tree-hint {
+    margin-left: 14px;
+    padding-left: 14px;
+    border-left: 1px solid #e2e8f0;
+    color: #94a3b8;
+    font-weight: 500;
+}
 .tree-swatch.rule {
     border-radius: 3px;
     background: #eff6ff;
@@ -562,6 +570,92 @@ body {
 
 .tree-link { fill: none; stroke: #cbd5e1; stroke-width: 1.6px; }
 .tree-link.token { stroke: #a7d8bf; }
+
+.tree-node.selected rect {
+    stroke-width: 3px;
+    filter: drop-shadow(0 0 0 rgba(59,130,246,0));
+}
+.tree-node.rule.selected rect { stroke: #3b82f6; }
+.tree-node.token.selected rect { stroke: #10b981; }
+
+/* Компактная карточка с кодом узла — всплывает по ПКМ рядом с курсором */
+.node-code-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 4000;
+    width: max-content;
+    min-width: 180px;
+    max-width: 380px;
+    max-height: 280px;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 16px 36px rgba(0,0,0,0.18), 0 0 0 1px rgba(15,23,42,0.04);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.96);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.node-code-panel.show {
+    transform: scale(1);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.node-code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 10px 9px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    flex-shrink: 0;
+}
+
+.node-code-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #5b6e8c;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.node-code-close {
+    background: none;
+    border: none;
+    font-size: 19px;
+    line-height: 1;
+    color: #94a3b8;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.node-code-close:hover { color: #1e293b; background: #f1f5f9; }
+
+.node-code-content {
+    margin: 0;
+    padding: 10px 14px 14px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #0f172a;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-y: auto;
+}
 
 @media (max-width: 768px) {
     .tree-screen-header {

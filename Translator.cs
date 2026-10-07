@@ -1,6 +1,5 @@
 using Antlr4.Runtime;
 using Kotlin_plus_plus;
-using System.Text.Json;
 
 public static class Translator
 {
@@ -27,11 +26,7 @@ public static class Translator
 
         var tree = parser.root();
 
-        var treeDto = ParseTreeConverter.Convert(tree);
-
-        var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
-        string json = JsonSerializer.Serialize(treeDto, jsonOptions);
-
+        var treeDto = ParseTreeConverter.Convert(tree, code);
 
         var visitor = new CppGeneratorVisitor();
         visitor.Visit(tree);
