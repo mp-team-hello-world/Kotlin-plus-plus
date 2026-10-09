@@ -1,36 +1,24 @@
-using Antlr4.Runtime;
 using Kotlin_plus_plus;
 
 public static class Translator
 {
-    // Старое поведение — используется тестами (TestTranslator/*.cs) и везде,
-    // где нужен только C++ код. НЕ ТРОГАЕМ сигнатуру, чтобы ничего не сломать.
+    // 1. Старое поведение — используется тестами. НЕ ТРОГАЕМ сигнатуру.
     public static string Translate(string code)
     {
-        var (cppCode, _) = TranslateInternal(code);
-        return cppCode;
+        var (targetCode, _) = TranslateWithTree(code, "kotlin", "cpp");
+        return targetCode;
     }
 
-    // Новый метод — используется эндпоинтом /translate, отдаёт код + дерево разбора.
+    // 2. Старый метод для обратной совместимости.
     public static (string CppCode, TreeNodeDto Tree) TranslateWithTree(string code)
     {
-        return TranslateInternal(code);
+        return TranslateWithTree(code, "kotlin", "cpp");
     }
 
-    private static (string CppCode, TreeNodeDto Tree) TranslateInternal(string code)
+    // 3. НОВЫЙ метод, который принимает языки и обращается к фабрике.
+    public static (string TargetCode, TreeNodeDto Tree) TranslateWithTree(string code, string from, string to)
     {
-        var inputStream = new AntlrInputStream(code);
-        var lexer = new KotlinLexer(inputStream);
-        var tokenStream = new CommonTokenStream(lexer);
-        var parser = new KotlinParser(tokenStream);
-
-        var tree = parser.root();
-
-        var treeDto = ParseTreeConverter.Convert(tree, code);
-
-        var visitor = new CppGeneratorVisitor();
-        visitor.Visit(tree);
-
-        return (visitor.GetResult(), treeDto);
+        var strategy = TranslationFactory.GetStrategy(from, to);
+        return strategy.Translate(code);
     }
 }
