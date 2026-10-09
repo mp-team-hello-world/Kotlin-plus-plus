@@ -80,6 +80,17 @@ body {
     border-color: #cbd5e1;
 }
 
+/* Общий disabled-стиль для остальных кнопок (View Tree и т.д.) */
+.btn:disabled {
+    background: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
+    border-color: #cbd5e1;
+}
+
 .panels {
     display: flex;
     gap: 30px;
@@ -396,6 +407,9 @@ body {
     .modal-content {
         width: 92%;
     }
+    .modal-content-small {
+        max-width: 92%;
+    }
     .resize-handle {
         width: 80px;
         left: 50%;
@@ -663,4 +677,124 @@ body {
         padding: 14px 16px;
     }
     .tree-legend { margin-left: 0; }
+}
+
+/* ============================
+   LANGUAGE MODAL
+   ============================ */
+.modal-content-small {
+    max-width: 340px;
+}
+
+.language-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.language-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 20px;
+    color: #1e293b;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    width: 100%;
+}
+
+.language-option:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px -6px rgba(59,130,246,0.3);
+}
+
+.language-option.active {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    box-shadow: 0 0 0 1px #3b82f6 inset;
+}
+
+.lang-flag {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.lang-name {
+    flex: 1;
+}
+
+.lang-check {
+    opacity: 0;
+    color: #3b82f6;
+    font-weight: 800;
+    font-size: 16px;
+    transition: opacity 0.15s ease;
+}
+
+.language-option.active .lang-check {
+    opacity: 1;
+}
+
+/* ============================
+   CLICKABLE PANEL HEADERS
+   ============================ */
+.panel-header-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid #f1f5f9;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.18s ease, color 0.18s ease;
+    padding: 18px 24px 14px 24px;
+    font: inherit;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #5b6e8c;
+    font-family: 'Inter', monospace;
+}
+
+.panel-header-btn:hover {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.panel-header-btn:active {
+    background: #dbeafe;
+}
+
+.panel-header-btn:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: -2px;
+}
+
+.panel-header-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.panel-header-arrow {
+    font-size: 14px;
+    opacity: 0.5;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.panel-header-btn:hover .panel-header-arrow {
+    opacity: 1;
+    transform: translateY(1px);
 }

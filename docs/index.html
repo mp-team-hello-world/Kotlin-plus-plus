@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kotlin++ | Internet code transpiler</title>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
 </head>
@@ -12,7 +13,7 @@
         <!-- Заголовок большими буквами в левом верхнем углу -->
         <h1 class="header-title">Kotlin++</h1>
 
-        <!-- 4 кнопки: Load File, Load Archive, Translate, Download -->
+        <!-- Кнопки: Load File, Load Archive, Translate, View Tree, Download -->
         <div class="buttons-row">
             <button class="btn" id="loadFileBtn">Load File</button>
             <button class="btn" id="loadArchiveBtn">Load Archive</button>
@@ -25,17 +26,23 @@
         <div class="panels">
             <!-- Левая ячейка (источник для Translate) -->
             <div class="panel">
-                <div class="panel-header">📄 Kotlin Code</div>
+                <button class="panel-header panel-header-btn" id="leftLangBtn" data-side="source">
+                    <span class="panel-header-label">📄 <span id="leftLangName">Kotlin</span> Code</span>
+                    <span class="panel-header-arrow">▾</span>
+                </button>
                 <div class="textarea-wrapper">
-                    <textarea class="text-box" id="leftText" placeholder="Type or paste your kotlin code here...&#10;Then press Translate"></textarea>
+                    <textarea class="text-box" id="leftText" placeholder="Type or paste your source code here...&#10;Then press Translate"></textarea>
                 </div>
             </div>
 
             <!-- Правая ячейка (цель для Translate) -->
             <div class="panel">
-                <div class="panel-header">📄 C++ Code</div>
+                <button class="panel-header panel-header-btn" id="rightLangBtn" data-side="target">
+                    <span class="panel-header-label">📄 <span id="rightLangName">C++</span> Code</span>
+                    <span class="panel-header-arrow">▾</span>
+                </button>
                 <div class="textarea-wrapper">
-                    <textarea class="text-box" id="rightText" placeholder="Translated text appears here...&#10;You can also edit this field manually.&#10;Click Download to save this as .cpp file."></textarea>
+                    <textarea class="text-box" id="rightText" placeholder="Translated result appears here...&#10;You can also edit this field manually.&#10;Click Download to save this as .cpp file."></textarea>
                 </div>
             </div>
         </div>
@@ -68,6 +75,25 @@
             <div class="modal-footer">
                 <button class="modal-btn cancel-btn" id="cancelModalBtn">Cancel</button>
                 <button class="modal-btn submit-btn" id="submitFilenameBtn">Download .cpp</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно выбора языка программирования -->
+    <div id="languageModal" class="modal">
+        <div class="modal-content modal-content-small">
+            <div class="modal-header">
+                <span class="modal-title" id="languageModalTitle">🌐 Select language</span>
+                <button class="modal-close" id="closeLanguageModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="language-list" id="languageList">
+                    <!-- Список языков генерируется из JS -->
+                </div>
+                <div class="modal-hint">More languages coming soon</div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel-btn" id="cancelLanguageModalBtn">Close</button>
             </div>
         </div>
     </div>
