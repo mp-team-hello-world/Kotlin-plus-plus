@@ -65,7 +65,7 @@ public class MainFunctionalityTests
         string result = Translator.Translate(input);
         Assert.That(result, Does.Contain("while (count < 100)"));
         Assert.That(result, Does.Contain("count < 100"));
-        Assert.That(result, Does.Contain("{\n    count = count + 1;\n}"));
+        Assert.That(result, Does.Contain("    {\n        count = count + 1;\n    }"));
     }
 
     [Test]
@@ -194,4 +194,29 @@ fun processData(limit: Int): Int {
         Assert.That(result, Does.Contain("result += 1;"));
         Assert.That(result, Does.Contain("return result;"));
     }
+
+    [Test]
+    public void AutoGenerateMain_WhenNoMainInTopLevelStatements()
+    {
+        string input = "val a = 1\nval b = 2";
+        string result = Translator.Translate(input);
+
+        Assert.That(result, Does.Contain("int main()"));
+        Assert.That(result, Does.Contain("auto a = 1;"));
+        Assert.That(result, Does.Contain("auto b = 2;"));
+        Assert.That(result, Does.Contain("return 0;"));
+    }
+
+    [Test]
+    public void AutoGenerateMain_WhenOnlyFunctionsDeclared()
+    {
+        string input = "fun foo(): Int = 42";
+        string result = Translator.Translate(input);
+
+        Assert.That(result, Does.Contain("int foo()"));
+        Assert.That(result, Does.Contain("int main()"));
+        Assert.That(result, Does.Contain("return 0;"));
+    }
+
+ 
 }

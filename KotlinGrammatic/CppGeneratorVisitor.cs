@@ -43,8 +43,78 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
     // root: statements EOF;
     public override string VisitRoot(KotlinParser.RootContext context)
     {
-        // Собираем все statements
-        Visit(context.statements());
+        if (context.statements() == null)
+        {
+            AddLine("int main()");
+            AddLine("{");
+            _indentLevel++;
+            AddLine("return 0;");
+            _indentLevel--;
+            AddLine("}");
+            return null;
+        }
+
+        var allStatements = context.statements().statement();
+        if (allStatements == null || allStatements.Length == 0)
+        {
+            AddLine("int main()");
+            AddLine("{");
+            _indentLevel++;
+            AddLine("return 0;");
+            _indentLevel--;
+            AddLine("}");
+            return null;
+        }
+
+        bool hasMain = false;
+        var functionStatements = new List<KotlinParser.StatementContext>();
+        var topLevelStatements = new List<KotlinParser.StatementContext>();
+
+        foreach (var statement in allStatements)
+        {
+            var funcDecl = statement.functionDeclaration();
+            if (funcDecl != null)
+            {
+                functionStatements.Add(statement);
+                var ids = funcDecl.ID();
+                if (ids != null && ids.Length > 0 && ids[0].GetText() == "main")
+                {
+                    hasMain = true;
+                }
+            }
+            else
+            {
+                topLevelStatements.Add(statement);
+            }
+        }
+
+        if (hasMain)
+        {
+            // Если main уже есть, обходим все statements в обычном порядке
+            Visit(context.statements());
+        }
+        else
+        {
+            // Если main нет:
+            // 1. Сначала транслируем функции вне main
+            foreach (var funcStmt in functionStatements)
+            {
+                Visit(funcStmt);
+            }
+
+            // 2. Все остальные инструкции оборачиваем в int main()
+            AddLine("int main()");
+            AddLine("{");
+            _indentLevel++;
+            foreach (var stmt in topLevelStatements)
+            {
+                Visit(stmt);
+            }
+            AddLine("return 0;");
+            _indentLevel--;
+            AddLine("}");
+        }
+
         return null;  // Не возвращаем ничего, всё уже в _output
     }
 
