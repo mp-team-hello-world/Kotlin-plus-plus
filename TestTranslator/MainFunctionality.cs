@@ -218,5 +218,21 @@ fun processData(limit: Int): Int {
         Assert.That(result, Does.Contain("return 0;"));
     }
 
- 
+    [Test]
+    public void IncludeException_OnlyWhenExceptionsPresent()
+    {
+        string input = "try { val x = 1 } catch (e: Exception) { val y = 2 }";
+        string result = Translator.Translate(input);
+
+        Assert.That(result, Does.Contain("#include <exception>"));
+    }
+
+    [Test]
+    public void IncludeException_NotPresentWhenNoExceptions()
+    {
+        string input = "val x = 10";
+        string result = Translator.Translate(input);
+
+        Assert.That(result, Does.Not.Contain("#include <exception>"));
+    }
 }

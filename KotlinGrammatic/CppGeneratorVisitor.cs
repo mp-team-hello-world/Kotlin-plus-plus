@@ -13,6 +13,7 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
     private string Indent => new string(' ', _indentLevel * 4);
 
     private List<string> _prototypesOfFunctions = new();
+    private bool _hasExceptions = false;
 
     private void AddLine(string line)
     {
@@ -24,8 +25,12 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         // Формируем финальный вывод
         var finalOutput = new List<string>();
 
-        finalOutput.Add("#include <exception>");
-        finalOutput.Add("");
+        if (_hasExceptions)
+        {
+            finalOutput.Add("#include <exception>");
+            finalOutput.Add("");
+        }
+
         finalOutput.Add("using namespace std;");
         finalOutput.Add("");
 
@@ -453,7 +458,10 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
         else if (context.BREAK() != null)
             AddLine("break;");
         else if (context.THROW() != null)
+        {
+            _hasExceptions = true;
             AddLine($"// throw {Visit(context.expression())}");
+        }
         return null;
     }
 
@@ -461,6 +469,7 @@ public class CppGeneratorVisitor : KotlinParserBaseVisitor<string>
 
     public override string VisitTryExpression(KotlinParser.TryExpressionContext context)
     {
+        _hasExceptions = true;
         AddLine("try");
         Visit(context.block());
 
