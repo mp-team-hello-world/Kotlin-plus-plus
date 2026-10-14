@@ -144,16 +144,42 @@ public sealed class CppBackend : ITargetBackend
             }
         }
 
-        public void VisitVarDecl(VarDeclStmt node)
+        public void VisitVarDecl(VarDeclStmt node) => _w.Line(DeclText(node) + ";");
+
+        public void VisitAssign(AssignStmt node) => _w.Line(AssignText(node) + ";");
+
+        public void VisitIncDec(IncDecStmt node) => _w.Line(IncDecText(node) + ";");
+
+        // Тексты без ';' — переиспользуются в заголовке for (...)
+        private string DeclText(VarDeclStmt node)
         {
-            string modifier = node.IsConst ? "const auto" : "auto";
-            _w.Line($"{modifier} {node.Name} = {Render(node.Init)};");
+            string prefix = node.IsConst ? "const " : "";
+            string declared = DeclaredType(node);
+            return node.Init == null
+                ? $"{prefix}{declared} {node.Name}"
+                : $"{prefix}{declared} {node.Name} = {Render(node.Init)}";
         }
 
-        public void VisitAssign(AssignStmt node)
+        // Тип не указан (Kotlin, C# var) -> auto, как и раньше
+        private static string DeclaredType(VarDeclStmt node)
         {
-            _w.Line($"{node.Target} {node.Op} {Render(node.Value)};");
+            if (node.Type == null) return "auto";
+            if (node.Type.Kind != DataType.Unknown) return ToCppType(node.Type);
+            return node.Init == null ? node.Type.SourceName : "auto";
         }
+
+        private string AssignText(AssignStmt node) => $"{node.Target} {node.Op} {Render(node.Value)}";
+
+        private static string IncDecText(IncDecStmt node) => node.Target + (node.IsIncrement ? "++" : "--");
+
+        private string Inline(Stmt stmt) => stmt switch
+        {
+            VarDeclStmt v => DeclText(v),
+            AssignStmt a => AssignText(a),
+            IncDecStmt i => IncDecText(i),
+            ExprStmt e => Render(e.Expression),
+            _ => string.Empty
+        };
 
         public void VisitBlock(BlockStmt node)
         {
@@ -180,6 +206,21 @@ public sealed class CppBackend : ITargetBackend
         {
             string v = node.Variable;
             _w.Line($"for (int {v} = {Render(node.Start)}; {v} <= {Render(node.EndInclusive)}; {v}++)");
+            EmitBody(node.Body);
+        }
+
+        public void VisitFor(ForStmt node)
+        {
+            _w.Line($"for ({Inline(node.Init)}; {Render(node.Condition)}; {Inline(node.Update)})");
+            EmitBody(node.Body);
+        }
+
+        public void VisitForEach(ForEachStmt node)
+        {
+            string type = node.VariableType != null && node.VariableType.Kind != DataType.Unknown
+                ? ToCppType(node.VariableType)
+                : "auto";
+            _w.Line($"for ({type} {node.Variable} : {Render(node.Iterable)})");
             EmitBody(node.Body);
         }
 

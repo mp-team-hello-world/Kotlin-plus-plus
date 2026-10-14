@@ -14,7 +14,8 @@ public static class TranslationFactory
         new(StringComparer.OrdinalIgnoreCase)
         {
             ["kotlin"] = () => new KotlinFrontend(),
-            ["python"] = () => new PythonFrontend()
+            ["python"] = () => new PythonFrontend(),
+            ["csharp"] = () => new CSharpFrontend(),
         };
 
     // Целевые языки (генератор кода из IR)

@@ -18,12 +18,14 @@ namespace Kotlin_plus_plus;
 //    * Операторы хранятся каноническими C-подобными символами: + - * / % < > <= >= == !=
 //      && || (бинарные), - ! (унарные). Backend сам превращает их в свой синтаксис
 //      (например, Python: && -> and, ! -> not).
+//    * Точка входа программы — функция с именем main. Frontend обязан привести к этому имени
+//      точку входа своего языка (например, C#: Main -> main).
 //    * Поля, помеченные "может быть null", допускают null.
 // =====================================================================================
 
 public enum DataType { Int, Long, Float, Double, Bool, Char, String, Void, Unknown }
 
-public enum LiteralKind { Int, Double, String }
+public enum LiteralKind { Int, Double, String, Bool, Char }
 
 /// <summary>Тип в IR. SourceName — как тип назывался в исходнике (нужен для Unknown).</summary>
 public sealed record TypeRef(DataType Kind, string SourceName)
@@ -63,6 +65,9 @@ public interface IStmtVisitor
     void VisitBlock(BlockStmt node);
     void VisitIf(IfStmt node);
     void VisitForRange(ForRangeStmt node);
+    void VisitFor(ForStmt node);
+    void VisitForEach(ForEachStmt node);
+    void VisitIncDec(IncDecStmt node);
     void VisitWhile(WhileStmt node);
     void VisitDoWhile(DoWhileStmt node);
     void VisitFunction(FunctionDecl node);
@@ -129,8 +134,11 @@ public sealed record ExprStmt(Expr Expression) : Stmt
     public override void Accept(IStmtVisitor v) => v.VisitExprStmt(this);
 }
 
-/// <summary>val/var. IsConst == true для val.</summary>
-public sealed record VarDeclStmt(bool IsConst, string Name, Expr Init) : Stmt
+/// <summary>
+/// Объявление переменной. IsConst == true для val / const.
+/// Init может быть null (int x;). Type == null, если тип в исходнике не указан (Kotlin, C# var).
+/// </summary>
+public sealed record VarDeclStmt(bool IsConst, string Name, Expr Init, TypeRef Type = null) : Stmt
 {
     public override void Accept(IStmtVisitor v) => v.VisitVarDecl(this);
 }
@@ -156,6 +164,27 @@ public sealed record IfStmt(Expr Condition, Stmt Then, Stmt Else) : Stmt
 public sealed record ForRangeStmt(string Variable, Expr Start, Expr EndInclusive, Stmt Body) : Stmt
 {
     public override void Accept(IStmtVisitor v) => v.VisitForRange(this);
+}
+
+/// <summary>
+/// Классический for (Init; Condition; Update) Body. Init/Update — VarDecl, Assign, IncDec или ExprStmt;
+/// любая из частей (и Condition) может быть null.
+/// </summary>
+public sealed record ForStmt(Stmt Init, Expr Condition, Stmt Update, Stmt Body) : Stmt
+{
+    public override void Accept(IStmtVisitor v) => v.VisitFor(this);
+}
+
+/// <summary>foreach (VariableType Variable in Iterable) Body. VariableType == null — тип не указан (var).</summary>
+public sealed record ForEachStmt(string Variable, TypeRef VariableType, Expr Iterable, Stmt Body) : Stmt
+{
+    public override void Accept(IStmtVisitor v) => v.VisitForEach(this);
+}
+
+/// <summary>Инкремент/декремент как инструкция: i++ / i-- (пре- и пост- форма в инструкции неразличимы).</summary>
+public sealed record IncDecStmt(string Target, bool IsIncrement) : Stmt
+{
+    public override void Accept(IStmtVisitor v) => v.VisitIncDec(this);
 }
 
 /// <summary>Body может быть null (пустое тело).</summary>

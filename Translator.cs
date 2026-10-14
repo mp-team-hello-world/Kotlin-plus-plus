@@ -18,10 +18,8 @@ public static class Translator
     // 3. НОВЫЙ метод, который принимает языки и обращается к фабрике.
     public static (string TargetCode, TreeNodeDto Tree) TranslateWithTree(string code, string from, string to)
     {
-        Console.WriteLine($"[DEBUG] Starting translation from {from} to {to}");
         var strategy = TranslationFactory.GetStrategy(from, to);
         var result = strategy.Translate(code);
-        Console.WriteLine($"[DEBUG] Finished. Length of target code: {result.TargetCode?.Length ?? 0}");
         return result;
     }
 }

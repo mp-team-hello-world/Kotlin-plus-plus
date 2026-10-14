@@ -86,7 +86,8 @@ public sealed class PythonBackend : ITargetBackend
 
         // ---------- выражения ----------
 
-        public string VisitLiteral(LiteralExpr node) => node.Text;
+        public string VisitLiteral(LiteralExpr node) =>
+            node.Kind == LiteralKind.Bool ? (node.Text == "true" ? "True" : "False") : node.Text;
 
         public string VisitIdentifier(IdentifierExpr node) => node.Name;
 
@@ -116,7 +117,12 @@ public sealed class PythonBackend : ITargetBackend
             if (!string.IsNullOrEmpty(text)) _w.Line(text);
         }
 
-        public void VisitVarDecl(VarDeclStmt node) => _w.Line($"{node.Name} = {Render(node.Init)}");
+        // int x;  ->  x = None  (в Python переменную нельзя объявить без значения)
+        public void VisitVarDecl(VarDeclStmt node) =>
+            _w.Line(node.Init == null ? $"{node.Name} = None" : $"{node.Name} = {Render(node.Init)}");
+
+        public void VisitIncDec(IncDecStmt node) =>
+            _w.Line(node.IsIncrement ? $"{node.Target} += 1" : $"{node.Target} -= 1");
 
         public void VisitAssign(AssignStmt node) => _w.Line($"{node.Target} {node.Op} {Render(node.Value)}");
 
@@ -144,16 +150,67 @@ public sealed class PythonBackend : ITargetBackend
             }
         }
 
+        // Kotlin 1..n включает n, а range() — нет: нужен конец + 1
+        private string PlusOne(Expr end) =>
+            end is LiteralExpr { Kind: LiteralKind.Int } literal && long.TryParse(literal.Text, out long value)
+                ? (value + 1).ToString()
+                : $"{Render(end)} + 1";
+
         public void VisitForRange(ForRangeStmt node)
         {
-            // Kotlin 1..n включает n, а range() — нет
-            string end = node.EndInclusive is LiteralExpr { Kind: LiteralKind.Int } literal
-                         && long.TryParse(literal.Text, out long value)
-                ? (value + 1).ToString()
-                : $"{Render(node.EndInclusive)} + 1";
-
-            _w.Line($"for {node.Variable} in range({Render(node.Start)}, {end}):");
+            _w.Line($"for {node.Variable} in range({Render(node.Start)}, {PlusOne(node.EndInclusive)}):");
             EmitBody(node.Body);
+        }
+
+        public void VisitFor(ForStmt node)
+        {
+            if (TryEmitForAsRange(node)) return;
+
+            // Общий случай: init; while cond: body; update
+            // (известное упрощение: continue в теле пропустит update)
+            Emit(node.Init);
+            string condition = node.Condition == null ? "True" : Render(node.Condition);
+            _w.Line($"while {condition}:");
+            _w.Indent();
+            int before = _w.Count;
+            EmitStatements(node.Body);
+            Emit(node.Update);
+            if (_w.Count == before) _w.Line("pass");
+            _w.Dedent();
+        }
+
+        // for (int i = a; i < b; i++)  ->  for i in range(a, b)   (<= даёт b + 1)
+        private bool TryEmitForAsRange(ForStmt node)
+        {
+            if (node.Init is not VarDeclStmt init || init.Init == null) return false;
+            if (node.Condition is not BinaryExpr cond) return false;
+            if (cond.Left is not IdentifierExpr condVar || condVar.Name != init.Name) return false;
+            if (cond.Op != "<" && cond.Op != "<=") return false;
+            if (node.Update is not IncDecStmt { IsIncrement: true } step || step.Target != init.Name) return false;
+
+            string end = cond.Op == "<" ? Render(cond.Right) : PlusOne(cond.Right);
+            _w.Line($"for {init.Name} in range({Render(init.Init)}, {end}):");
+            EmitBody(node.Body);
+            return true;
+        }
+
+        public void VisitForEach(ForEachStmt node)
+        {
+            _w.Line($"for {node.Variable} in {Render(node.Iterable)}:");
+            EmitBody(node.Body);
+        }
+
+        // Содержимое тела без отступа и без pass (для тел, к которым дописываются ещё строки)
+        private void EmitStatements(Stmt body)
+        {
+            if (body is BlockStmt block)
+            {
+                foreach (var stmt in block.Statements) Emit(stmt);
+            }
+            else
+            {
+                Emit(body);
+            }
         }
 
         public void VisitWhile(WhileStmt node)
