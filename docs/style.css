@@ -1,7 +1,20 @@
 /* ============================================
    THEME VARIABLES
    ============================================ */
+
+/* Стартовая нейтральная тема (до выбора языка) */
 :root,
+html[data-theme="none"] {
+    --accent:        #94a3b8;   /* серый */
+    --accent-hover:  #64748b;
+    --accent-soft:   #f1f5f9;
+    --accent-soft-2: #e2e8f0;
+    --accent-ring:   rgba(148, 163, 184, 0.15);
+    --accent-shadow: rgba(100, 116, 139, 0.30);
+    --accent-dot:    #94a3b8;
+    --accent-text:   #475569;
+}
+
 html[data-theme="kotlin"] {
     --accent:        #3b82f6;
     --accent-hover:  #2563eb;
@@ -71,13 +84,8 @@ body {
     -webkit-background-clip: text;
     color: #0f172a;
     text-shadow: none;
-    cursor: pointer;
     transition: border-color 0.25s ease, transform 0.2s ease;
     user-select: none;
-}
-
-.header-title:hover {
-    transform: translateX(2px);
 }
 
 .buttons-row {

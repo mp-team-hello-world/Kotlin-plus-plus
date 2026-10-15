@@ -32,12 +32,12 @@ const LANGUAGES = {
     python: { name: 'Python', flag: '🐍', ext: '.py',    theme: 'python' },
 };
 
-// Исходный язык выбирается; целевой всегда 'cpp' (жёстко зашит)
 const AVAILABLE_SOURCE_LANGS = ['kt', 'sharp', 'python'];
 
-let sourceLanguage = 'kt';
-const targetLanguage = 'cpp';   // НЕ меняется
-const TARGET_EXT = '.cpp';      // Расширение результата
+// Язык ещё не выбран — стартовая нейтральная тема
+let sourceLanguage = null;
+const targetLanguage = 'cpp';
+const TARGET_EXT = '.cpp';
 
 // DOM модального окна языков
 const languageModal = document.getElementById('languageModal');
@@ -53,6 +53,7 @@ const leftLangName = document.getElementById('leftLangName');
 // ТЕМЫ ОФОРМЛЕНИЯ
 // ========================
 const THEMES = {
+    none:   { title: 'Lang++'   },
     kotlin: { title: 'Kotlin++' },
     sharp:  { title: 'Sharp++'  },
     python: { title: 'Python++' },
@@ -61,7 +62,7 @@ const THEMES = {
 const appTitle = document.getElementById('appTitle');
 
 function applyTheme(themeKey) {
-    if (!THEMES[themeKey]) themeKey = 'kotlin';
+    if (!themeKey || !THEMES[themeKey]) themeKey = 'none';
     document.documentElement.setAttribute('data-theme', themeKey);
     if (appTitle) {
         appTitle.textContent = THEMES[themeKey].title;
@@ -90,7 +91,8 @@ function showSuccessSavedMessage() {
 // УПРАВЛЕНИЕ КНОПКОЙ TRANSLATE
 // ========================
 function updateTranslateButtonState() {
-    translateBtn.disabled = leftTextarea.value.trim() === '';
+    translateBtn.disabled =
+        leftTextarea.value.trim() === '' || sourceLanguage === null;
 }
 
 // ========================
@@ -323,6 +325,9 @@ function applySourceLanguage(langCode) {
     // Смена исходного языка автоматически меняет тему
     const themeForLang = LANGUAGES[langCode].theme;
     if (themeForLang && THEMES[themeForLang]) applyTheme(themeForLang);
+
+    // Обновляем доступность Translate
+    updateTranslateButtonState();
 }
 
 closeLanguageModalBtn.addEventListener('click', closeLanguageModal);
@@ -416,9 +421,8 @@ window.addEventListener('resize', () => {
 function init() {
     console.log('Инициализация...');
 
-    // Тема по текущему исходному языку
-    const initialTheme = LANGUAGES[sourceLanguage]?.theme || 'kotlin';
-    applyTheme(initialTheme);
+    // Стартовая нейтральная тема (до выбора языка)
+    applyTheme('none');
 
     const optimalHeight = calculateOptimalHeight();
     setBothTextareasHeight(optimalHeight);
@@ -426,16 +430,19 @@ function init() {
     setupManualResize(leftTextarea, rightTextarea, 'LEFT');
     setupManualResize(rightTextarea, leftTextarea, 'RIGHT');
 
-    updateTranslateButtonState();
+    // Пока язык не выбран — «Choose language»
+    leftLangName.textContent = sourceLanguage
+        ? LANGUAGES[sourceLanguage].name
+        : 'Choose language';
 
-    leftLangName.textContent = LANGUAGES[sourceLanguage].name;
+    updateTranslateButtonState();
 
     progressToast.classList.remove('show');
     successToast.classList.remove('show');
     modal.classList.remove('show');
     languageModal.classList.remove('show');
 
-    console.log('Готово. Source:', sourceLanguage, '→ Target:', targetLanguage, '| Theme:', initialTheme);
+    console.log('Готово. Source:', sourceLanguage, '→ Target:', targetLanguage);
 }
 
 document.addEventListener('DOMContentLoaded', init);
