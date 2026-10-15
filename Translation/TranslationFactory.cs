@@ -15,7 +15,10 @@ public static class TranslationFactory
         {
             ["kotlin"] = () => new KotlinFrontend(),
             ["python"] = () => new PythonFrontend(),
+            ["kt"] = () => new KotlinFrontend(),
+            ["py"] = () => new PythonFrontend(),
             ["csharp"] = () => new CSharpFrontend(),
+            ["sharp"] = () => new CSharpFrontend()
         };
 
     // Целевые языки (генератор кода из IR)
