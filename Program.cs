@@ -50,8 +50,8 @@ app.MapPost("/translate", (TranslateRequest request) =>
     {
         var (targetCode, tree) = Translator.TranslateWithTree(
             request.Code, 
-            request.From ?? "kotlin", 
-            request.To ?? "cpp"
+            request.Source ?? "kotlin",
+            request.Target ?? "cpp"
         );
         
         return Results.Ok(new { cppCode = targetCode, tree });
@@ -64,4 +64,4 @@ app.MapPost("/translate", (TranslateRequest request) =>
 
 app.Run();
 
-public record TranslateRequest(string Code, string? From = "kotlin", string? To = "cpp");
+public record TranslateRequest(string Code, string? Source = "kotlin", string? Target = "cpp");
