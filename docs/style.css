@@ -218,27 +218,30 @@ body {
     background-color: var(--accent-hover);
 }
 
+/* ============================
+   ТОСТЫ — компактные, внизу, выше всех слоёв
+   ============================ */
 .toast-notification {
     position: fixed;
-    top: 50%;
+    top: auto;
+    bottom: 24px;
     left: 50%;
-    transform: translate(-50%, -50%) scale(0.9);
+    transform: translateX(-50%) translateY(10px) scale(0.98);
     background: white;
-    backdrop-filter: blur(12px);
-    padding: 18px 32px;
-    border-radius: 60px;
+    padding: 10px 20px;
+    border-radius: 40px;
     font-weight: 600;
-    font-size: 17px;
+    font-size: 13px;
     font-family: 'Inter', system-ui, sans-serif;
-    box-shadow: 0 20px 35px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.2);
-    z-index: 1500;
+    box-shadow: 0 14px 28px -10px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.2);
+    z-index: 3500;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
+    transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
     display: flex;
     align-items: center;
-    gap: 12px;
-    letter-spacing: -0.2px;
+    gap: 8px;
+    letter-spacing: -0.1px;
     white-space: nowrap;
     pointer-events: none;
     max-width: calc(100vw - 40px);
@@ -247,36 +250,38 @@ body {
 .toast-notification.show {
     opacity: 1;
     visibility: visible;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translateX(-50%) translateY(0) scale(1);
 }
 
 .toast-icon {
-    font-size: 22px;
+    font-size: 16px;
 }
 
 .toast-error {
     background: #dc2626;
     color: white;
-    box-shadow: 0 20px 35px -12px rgba(220,38,38,0.4);
+    box-shadow: 0 14px 28px -10px rgba(220,38,38,0.4);
     border: 1px solid rgba(255,255,255,0.25);
 }
 
 .toast-success {
     background: #10b981;
     color: white;
-    box-shadow: 0 20px 35px -12px rgba(16,185,129,0.4);
+    box-shadow: 0 14px 28px -10px rgba(16,185,129,0.4);
     border: 1px solid rgba(255,255,255,0.25);
 }
 
 .toast-warn {
     background: #f59e0b;
     color: white;
-    box-shadow: 0 20px 35px -12px rgba(245, 158, 11, 0.45);
+    box-shadow: 0 14px 28px -10px rgba(245, 158, 11, 0.45);
     border: 1px solid rgba(255,255,255,0.25);
 }
 
+/* ============================
+   MODAL — плавное появление и исчезновение
+   ============================ */
 .modal {
-    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -284,14 +289,26 @@ body {
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     z-index: 2000;
+    display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(4px);
     padding: 20px;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+        opacity 0.25s ease,
+        visibility 0s linear 0.25s;
 }
 
 .modal.show {
-    display: flex;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+        opacity 0.25s ease,
+        visibility 0s linear 0s;
 }
 
 .modal-content {
@@ -445,13 +462,12 @@ body {
         radial-gradient(circle at 20% 20%, rgba(255,255,255,0.9), transparent 60%),
         radial-gradient(circle at 80% 70%, rgba(255,255,255,0.7), transparent 55%),
         linear-gradient(135deg, #eef2f9 0%, #e3e9f3 100%);
-    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+    transition: opacity 0.3s ease;
     overflow-y: auto;
 }
 
 .welcome-screen.hide {
     opacity: 0;
-    transform: scale(1.02);
     pointer-events: none;
 }
 
@@ -466,6 +482,13 @@ body {
         0 24px 60px -20px rgba(15, 23, 42, 0.25),
         0 0 0 1px rgba(15, 23, 42, 0.04);
     animation: welcomePop 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.welcome-card.welcome-card-hide {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+    pointer-events: none;
 }
 
 @keyframes welcomePop {
@@ -502,7 +525,6 @@ body {
     flex-wrap: wrap;
 }
 
-/* Логотип: каждая буква — свой цвет и своя высота (статично) */
 .welcome-brand {
     display: inline-flex;
     font-weight: 900;
@@ -748,7 +770,6 @@ body {
 }
 .tree-canvas:active { cursor: grabbing; }
 
-/* Узлы дерева */
 .tree-node { cursor: pointer; }
 .tree-node rect {
     stroke-width: 1.6px;
@@ -863,16 +884,27 @@ body {
 }
 
 /* ============================
-   LANGUAGE MODAL — WELCOME STYLE
+   LANGUAGE MODAL — блюр (только на десктопе)
    ============================ */
-
 .modal.modal-welcome-style {
-    background:
-        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.9), transparent 60%),
-        radial-gradient(circle at 80% 70%, rgba(255,255,255,0.7), transparent 55%),
-        linear-gradient(135deg, #eef2f9 0%, #e3e9f3 100%);
-    backdrop-filter: none;
-    z-index: 3000; /* выше welcome-экрана (2500) */
+    background: rgba(15, 23, 42, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 3000;
+
+    transition:
+        opacity 0.25s ease,
+        backdrop-filter 0.25s ease,
+        -webkit-backdrop-filter 0.25s ease,
+        visibility 0s linear 0.25s;
+}
+
+.modal.modal-welcome-style.show {
+    transition:
+        opacity 0.25s ease,
+        backdrop-filter 0.25s ease,
+        -webkit-backdrop-filter 0.25s ease,
+        visibility 0s linear 0s;
 }
 
 .modal-welcome-card {
@@ -1050,7 +1082,6 @@ body {
    АДАПТИВНОСТЬ
    ============================================ */
 
-/* Планшеты / небольшие ноутбуки */
 @media (max-width: 900px) {
     body {
         padding: 22px;
@@ -1069,7 +1100,6 @@ body {
     }
 }
 
-/* Мобильные телефоны в портрете */
 @media (max-width: 768px) {
     body {
         padding: 18px;
@@ -1117,12 +1147,24 @@ body {
     .toast-notification {
         white-space: normal;
         text-align: center;
-        max-width: 85%;
-        padding: 14px 24px;
+        max-width: 80%;
+        padding: 9px 16px;
+        font-size: 12px;
+        bottom: 12px;
+        border-radius: 30px;
+    }
+    .toast-icon {
         font-size: 14px;
     }
     .modal {
         padding: 16px;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+    .modal.modal-welcome-style {
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
     }
     .modal-content,
     .modal-welcome-card {
@@ -1168,7 +1210,6 @@ body {
     }
 }
 
-/* Очень узкие телефоны */
 @media (max-width: 420px) {
     body {
         padding: 12px;
@@ -1203,7 +1244,6 @@ body {
     .modal-welcome-card .language-option { padding: 14px 16px; }
 }
 
-/* Телефон в горизонтальной ориентации (landscape) — узкая высота, широкая ширина */
 @media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
     body {
         padding: 12px 18px;

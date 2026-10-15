@@ -52,6 +52,9 @@ const languageList = document.getElementById('languageList');
 const leftLangBtn = document.getElementById('leftLangBtn');
 const leftLangName = document.getElementById('leftLangName');
 
+// Содержимое файла, ожидающее выбора языка (когда расширение не распознано)
+let pendingFileContent = null;
+
 // ========================
 // ТЕМЫ
 // ========================
@@ -68,17 +71,33 @@ function applyTheme(themeKey) {
     document.documentElement.setAttribute('data-theme', themeKey);
     if (appTitle) {
         appTitle.textContent = THEMES[themeKey].title;
-        document.title = THEMES[themeKey].title + ' | Internet code transpiler';
+        // document.title намеренно не меняем — вкладка всегда "Lang++"
     }
 }
 
 // ========================
 // СТАРТОВЫЙ ЭКРАН
 // ========================
+
+// Плавное скрытие всего welcome-экрана (fade-out 400 мс).
+// Используется при загрузке распознанного файла.
 function hideWelcomeScreen() {
     if (!welcomeScreen || welcomeScreen.classList.contains('hide')) return;
     welcomeScreen.classList.add('hide');
-    setTimeout(() => { welcomeScreen.style.display = 'none'; }, 400);
+    setTimeout(() => {
+        if (sourceLanguage !== null) {
+            welcomeScreen.style.display = 'none';
+        }
+    }, 400);
+}
+
+// Плавное скрытие только карточки welcome (без фона).
+// Вызывается сразу при клике "Create New File" — карточка уходит
+// на фоне под модалкой, к моменту выбора языка её уже нет.
+function hideWelcomeCard() {
+    const card = welcomeScreen?.querySelector('.welcome-card');
+    if (!card) return;
+    card.classList.add('welcome-card-hide');
 }
 
 function showMainApp() {
@@ -325,13 +344,14 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Клик по языку — применяем, закрываем, показываем основной интерфейс
+// Клик по языку в модалке
 languageList.addEventListener('click', (e) => {
     const option = e.target.closest('.language-option');
     if (!option) return;
 
+    const isFirstPick = sourceLanguage === null;
+
     applySourceLanguage(option.dataset.lang);
-    closeLanguageModal();
 
     // Если ждали выбора языка для загруженного файла — вставим содержимое
     if (pendingFileContent !== null) {
@@ -340,22 +360,28 @@ languageList.addEventListener('click', (e) => {
         updateTranslateButtonState();
     }
 
-    hideWelcomeScreen();
-    showMainApp();
+    if (isFirstPick) {
+        // Показываем mainApp под модалкой (его не видно — модалка непрозрачна).
+        showMainApp();
+        // Карточка welcome уже давно скрыта — просто убираем весь экран.
+        // За модалкой сразу виден mainApp, никаких белых прямоугольников.
+        if (welcomeScreen) welcomeScreen.style.display = 'none';
+    }
+
+    // Модалка закроется плавно (CSS transition: opacity + visibility, 0.25s).
+    closeLanguageModal();
 
     setTimeout(() => {
         setBothTextareasHeight(calculateOptimalHeight());
-    }, 50);
+    }, 260);
 });
 
-// Клик по заголовку левой панели — тоже открывает модалку (смена языка)
+// Клик по заголовку левой панели — открывает ту же модалку (смена языка)
 leftLangBtn.addEventListener('click', openLanguageModal);
 
 // ========================
 // ЗАГРУЗКА ФАЙЛА
 // ========================
-let pendingFileContent = null;
-
 function detectLanguageFromFilename(fileName) {
     const lower = fileName.toLowerCase();
     for (const code of AVAILABLE_SOURCE_LANGS) {
@@ -390,9 +416,11 @@ function pickAndLoadFile() {
                     setBothTextareasHeight(calculateOptimalHeight());
                 }, 50);
             } else {
-                // Не распознали — запомним содержимое, покажем модалку
                 pendingFileContent = content;
                 showUnknownLangMessage();
+                // Если welcome-карточка ещё видна — прячем её,
+                // чтобы за модалкой не было белого прямоугольника.
+                hideWelcomeCard();
                 setTimeout(openLanguageModal, 300);
             }
 
@@ -411,11 +439,14 @@ loadFileBtn.addEventListener('click', pickAndLoadFile);
 
 welcomeLoadFileBtn.addEventListener('click', () => {
     // welcome не скрываем — если расширение распознается, уйдём сами;
-    // если нет, поверх welcome откроется модалка выбора языка
+    // если нет, поверх welcome откроется модалка
     pickAndLoadFile();
 });
 
 welcomeChooseLangBtn.addEventListener('click', () => {
+    // Прячем welcome-карточку сразу — пока пользователь выбирает язык,
+    // она плавно исчезает на фоне под модалкой.
+    hideWelcomeCard();
     openLanguageModal();
 });
 
@@ -461,7 +492,6 @@ window.addEventListener('resize', () => {
 function init() {
     console.log('Инициализация...');
 
-    // Ставим kotlin по умолчанию (не важно — mainApp скрыт)
     applyTheme('kotlin');
 
     if (mainApp) mainApp.hidden = true;
