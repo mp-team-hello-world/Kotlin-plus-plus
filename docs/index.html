@@ -1,33 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="kotlin">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kotlin++ | Internet code transpiler</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <!-- Заголовок большими буквами в левом верхнем углу -->
-        <h1 class="header-title">Kotlin++</h1>
 
-        <!-- Кнопки: Load File, Load Archive, Translate, View Tree, Download -->
+    <!-- ============================
+         СТАРТОВЫЙ ЭКРАН
+         ============================ -->
+    <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-card">
+            <div class="welcome-logo">💻</div>
+            <h1 class="welcome-title">
+                Welcome to
+                <span class="welcome-brand" aria-label="Lang++"><span class="letter l1">L</span><span class="letter l2">a</span><span class="letter l3">n</span><span class="letter l4">g</span><span class="letter l5">+</span><span class="letter l6">+</span></span>
+            </h1>
+            <p class="welcome-subtitle">
+                Transpile your code between languages.<br>
+                Pick how you'd like to start:
+            </p>
+
+            <div class="welcome-actions">
+                <button class="welcome-btn primary" id="welcomeLoadFileBtn">
+                    <span class="welcome-btn-icon">📂</span>
+                    <span class="welcome-btn-text">
+                        <span class="welcome-btn-title">Load File</span>
+                        <span class="welcome-btn-sub">Auto-detects language by extension</span>
+                    </span>
+                </button>
+
+                <button class="welcome-btn" id="welcomeChooseLangBtn">
+                    <span class="welcome-btn-icon">➕</span>
+                    <span class="welcome-btn-text">
+                        <span class="welcome-btn-title">Create New File</span>
+                        <span class="welcome-btn-sub">Pick Kotlin · Sharp · Python</span>
+                    </span>
+                </button>
+            </div>
+
+            <div class="welcome-hint">
+                Or paste your code later — you can always change things after
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================
+         МОДАЛКА ВЫБОРА ЯЗЫКА
+         (выглядит как welcome-карточка)
+         ============================ -->
+    <div id="languageModal" class="modal modal-welcome-style">
+        <div class="modal-welcome-card">
+            <div class="welcome-logo">🌐</div>
+            <h1 class="welcome-title">Choose your language</h1>
+            <p class="welcome-subtitle">
+                Pick the language of your source code.<br>
+                You can change it later anytime.
+            </p>
+
+            <div class="language-list" id="languageList"></div>
+        </div>
+    </div>
+
+    <!-- ============================
+         ОСНОВНОЙ ИНТЕРФЕЙС
+         ============================ -->
+    <div class="container" id="mainApp" hidden>
+        <h1 class="header-title" id="appTitle">Kotlin++</h1>
+
         <div class="buttons-row">
             <button class="btn" id="loadFileBtn">Load File</button>
-            <button class="btn" id="loadArchiveBtn">Load Archive</button>
             <button class="btn btn-translate" id="translateBtn">Translate</button>
             <button class="btn" id="viewTreeBtn" disabled>View Tree</button>
             <button class="btn" id="downloadBtn">Download</button>
         </div>
 
-        <!-- Две большие ячейки для текста -->
         <div class="panels">
-            <!-- Левая ячейка (источник для Translate) -->
             <div class="panel">
                 <button class="panel-header panel-header-btn" id="leftLangBtn" data-side="source">
-                    <span class="panel-header-label">📄 <span id="leftLangName">Kotlin</span> Code</span>
+                    <span class="panel-header-label">📄 <span id="leftLangName">Choose language</span> Code</span>
                     <span class="panel-header-arrow">▾</span>
                 </button>
                 <div class="textarea-wrapper">
@@ -35,12 +90,10 @@
                 </div>
             </div>
 
-            <!-- Правая ячейка (цель для Translate) -->
             <div class="panel">
-                <button class="panel-header panel-header-btn" id="rightLangBtn" data-side="target">
-                    <span class="panel-header-label">📄 <span id="rightLangName">C++</span> Code</span>
-                    <span class="panel-header-arrow">▾</span>
-                </button>
+                <div class="panel-header panel-header-static">
+                    <span class="panel-header-label">📄 C++ Code</span>
+                </div>
                 <div class="textarea-wrapper">
                     <textarea class="text-box" id="rightText" placeholder="Translated result appears here...&#10;You can also edit this field manually.&#10;Click Download to save this as .cpp file."></textarea>
                 </div>
@@ -48,19 +101,23 @@
         </div>
     </div>
 
-    <!-- Центрированное уведомление (красное - in progress) -->
+    <!-- Уведомления -->
     <div id="progressToast" class="toast-notification toast-error">
         <span class="toast-icon">⚠️</span>
         <span class="toast-message">sorry, this part is in progress yet</span>
     </div>
 
-    <!-- Центрированное уведомление (зеленое - успешное сохранение) -->
     <div id="successToast" class="toast-notification toast-success">
         <span class="toast-icon">✅</span>
         <span class="toast-message">file was saved successfully</span>
     </div>
 
-    <!-- Модальное окно для ввода имени файла (.cpp) -->
+    <div id="unknownLangToast" class="toast-notification toast-warn">
+        <span class="toast-icon">🤔</span>
+        <span class="toast-message">Couldn't detect language — please pick one</span>
+    </div>
+
+    <!-- Модалка имени файла -->
     <div id="filenameModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -79,26 +136,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно выбора языка программирования -->
-    <div id="languageModal" class="modal">
-        <div class="modal-content modal-content-small">
-            <div class="modal-header">
-                <span class="modal-title" id="languageModalTitle">🌐 Select language</span>
-                <button class="modal-close" id="closeLanguageModalBtn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="language-list" id="languageList">
-                    <!-- Список языков генерируется из JS -->
-                </div>
-                <div class="modal-hint">More languages coming soon</div>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-btn cancel-btn" id="cancelLanguageModalBtn">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Экран с деревом разбора (открывается кнопкой View Tree) -->
+    <!-- Parse Tree -->
     <div id="treeScreen" class="tree-screen">
         <div class="tree-screen-header">
             <div class="tree-screen-title">🌳 Parse Tree</div>
@@ -116,7 +154,6 @@
         </div>
         <div id="treeContainer" class="tree-canvas"></div>
 
-        <!-- Панель с кодом, который покрывает выбранный узел -->
         <div id="nodeCodePanel" class="node-code-panel">
             <div class="node-code-header">
                 <span class="node-code-title" id="nodeCodeTitle">Node</span>
