@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="kotlin">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,21 +10,17 @@
 </head>
 <body>
     <div class="container">
-        <!-- Заголовок большими буквами в левом верхнем углу -->
-        <h1 class="header-title">Kotlin++</h1>
+        <h1 class="header-title" id="appTitle">Kotlin++</h1>
 
-        <!-- Кнопки: Load File, Load Archive, Translate, View Tree, Download -->
         <div class="buttons-row">
             <button class="btn" id="loadFileBtn">Load File</button>
-            <button class="btn" id="loadArchiveBtn">Load Archive</button>
             <button class="btn btn-translate" id="translateBtn">Translate</button>
             <button class="btn" id="viewTreeBtn" disabled>View Tree</button>
             <button class="btn" id="downloadBtn">Download</button>
         </div>
 
-        <!-- Две большие ячейки для текста -->
         <div class="panels">
-            <!-- Левая ячейка (источник для Translate) -->
+            <!-- Левая ячейка (source — можно менять) -->
             <div class="panel">
                 <button class="panel-header panel-header-btn" id="leftLangBtn" data-side="source">
                     <span class="panel-header-label">📄 <span id="leftLangName">Kotlin</span> Code</span>
@@ -35,12 +31,11 @@
                 </div>
             </div>
 
-            <!-- Правая ячейка (цель для Translate) -->
+            <!-- Правая ячейка (target — всегда C++, не кликабельно) -->
             <div class="panel">
-                <button class="panel-header panel-header-btn" id="rightLangBtn" data-side="target">
-                    <span class="panel-header-label">📄 <span id="rightLangName">C++</span> Code</span>
-                    <span class="panel-header-arrow">▾</span>
-                </button>
+                <div class="panel-header panel-header-static">
+                    <span class="panel-header-label">📄 C++ Code</span>
+                </div>
                 <div class="textarea-wrapper">
                     <textarea class="text-box" id="rightText" placeholder="Translated result appears here...&#10;You can also edit this field manually.&#10;Click Download to save this as .cpp file."></textarea>
                 </div>
@@ -48,13 +43,11 @@
         </div>
     </div>
 
-    <!-- Центрированное уведомление (красное - in progress) -->
     <div id="progressToast" class="toast-notification toast-error">
         <span class="toast-icon">⚠️</span>
         <span class="toast-message">sorry, this part is in progress yet</span>
     </div>
 
-    <!-- Центрированное уведомление (зеленое - успешное сохранение) -->
     <div id="successToast" class="toast-notification toast-success">
         <span class="toast-icon">✅</span>
         <span class="toast-message">file was saved successfully</span>
@@ -79,11 +72,11 @@
         </div>
     </div>
 
-    <!-- Модальное окно выбора языка программирования -->
+    <!-- Модальное окно выбора ИСХОДНОГО языка -->
     <div id="languageModal" class="modal">
         <div class="modal-content modal-content-small">
             <div class="modal-header">
-                <span class="modal-title" id="languageModalTitle">🌐 Select language</span>
+                <span class="modal-title" id="languageModalTitle">🌐 Source language</span>
                 <button class="modal-close" id="closeLanguageModalBtn">&times;</button>
             </div>
             <div class="modal-body">
@@ -98,7 +91,7 @@
         </div>
     </div>
 
-    <!-- Экран с деревом разбора (открывается кнопкой View Tree) -->
+    <!-- Экран с деревом разбора -->
     <div id="treeScreen" class="tree-screen">
         <div class="tree-screen-header">
             <div class="tree-screen-title">🌳 Parse Tree</div>
@@ -116,7 +109,6 @@
         </div>
         <div id="treeContainer" class="tree-canvas"></div>
 
-        <!-- Панель с кодом, который покрывает выбранный узел -->
         <div id="nodeCodePanel" class="node-code-panel">
             <div class="node-code-header">
                 <span class="node-code-title" id="nodeCodeTitle">Node</span>

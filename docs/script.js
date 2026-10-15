@@ -5,12 +5,11 @@ const leftTextarea = document.getElementById('leftText');
 const rightTextarea = document.getElementById('rightText');
 
 const loadFileBtn = document.getElementById('loadFileBtn');
-const loadArchiveBtn = document.getElementById('loadArchiveBtn');
 const translateBtn = document.getElementById('translateBtn');
 const viewTreeBtn = document.getElementById('viewTreeBtn');
 const downloadBtn = document.getElementById('downloadBtn');
 
-// Дерево разбора последнего успешного перевода (для кнопки View Tree)
+// Дерево разбора последнего успешного перевода
 let lastTreeData = null;
 
 // Уведомления
@@ -25,29 +24,20 @@ const cancelModalBtn = document.getElementById('cancelModalBtn');
 const submitFilenameBtn = document.getElementById('submitFilenameBtn');
 
 // ========================
-// ЯЗЫКИ ПРОГРАММИРОВАНИЯ
+// ЯЗЫКИ (source — выбирается; target — всегда C++)
 // ========================
-// Полный "enum" языков. Ключ — короткий код (уйдёт в JSON на сервер),
-// значение — отображаемое имя, иконка и расширение файла.
 const LANGUAGES = {
-    kt:  { name: 'Kotlin', flag: '🟣', ext: '.kt'  },
-    cpp: { name: 'C++',    flag: '🔵', ext: '.cpp' },
-    // java:   { name: 'Java',   flag: '☕', ext: '.java' },
-    // python: { name: 'Python', flag: '🐍', ext: '.py'   },
+    kt:     { name: 'Kotlin', flag: '💎', ext: '.kt',    theme: 'kotlin' },
+    sharp:  { name: 'Sharp',  flag: '☕', ext: '.sharp', theme: 'sharp'  },
+    python: { name: 'Python', flag: '🐍', ext: '.py',    theme: 'python' },
 };
 
-// Какие языки доступны для каждой панели (source — левая, target — правая)
-const AVAILABLE_LANGUAGES = {
-    source: ['kt'],
-    target: ['cpp'],
-};
+// Исходный язык выбирается; целевой всегда 'cpp' (жёстко зашит)
+const AVAILABLE_SOURCE_LANGS = ['kt', 'sharp', 'python'];
 
-// Текущие выбранные языки. Именно эти значения уйдут в JSON на сервер.
 let sourceLanguage = 'kt';
-let targetLanguage = 'cpp';
-
-// Какой язык сейчас выбираем в модалке: 'source' или 'target'
-let languageModalTarget = null;
+const targetLanguage = 'cpp';   // НЕ меняется
+const TARGET_EXT = '.cpp';      // Расширение результата
 
 // DOM модального окна языков
 const languageModal = document.getElementById('languageModal');
@@ -56,11 +46,28 @@ const closeLanguageModalBtn = document.getElementById('closeLanguageModalBtn');
 const cancelLanguageModalBtn = document.getElementById('cancelLanguageModalBtn');
 const languageList = document.getElementById('languageList');
 
-// Кнопки-заголовки панелей
 const leftLangBtn = document.getElementById('leftLangBtn');
-const rightLangBtn = document.getElementById('rightLangBtn');
 const leftLangName = document.getElementById('leftLangName');
-const rightLangName = document.getElementById('rightLangName');
+
+// ========================
+// ТЕМЫ ОФОРМЛЕНИЯ
+// ========================
+const THEMES = {
+    kotlin: { title: 'Kotlin++' },
+    sharp:  { title: 'Sharp++'  },
+    python: { title: 'Python++' },
+};
+
+const appTitle = document.getElementById('appTitle');
+
+function applyTheme(themeKey) {
+    if (!THEMES[themeKey]) themeKey = 'kotlin';
+    document.documentElement.setAttribute('data-theme', themeKey);
+    if (appTitle) {
+        appTitle.textContent = THEMES[themeKey].title;
+        document.title = THEMES[themeKey].title + ' | Internet code transpiler';
+    }
+}
 
 // ========================
 // УВЕДОМЛЕНИЯ
@@ -69,18 +76,14 @@ function showInProgressMessage() {
     progressToast.classList.remove('show');
     void progressToast.offsetWidth;
     progressToast.classList.add('show');
-    setTimeout(() => {
-        progressToast.classList.remove('show');
-    }, 2000);
+    setTimeout(() => progressToast.classList.remove('show'), 2000);
 }
 
 function showSuccessSavedMessage() {
     successToast.classList.remove('show');
     void successToast.offsetWidth;
     successToast.classList.add('show');
-    setTimeout(() => {
-        successToast.classList.remove('show');
-    }, 2000);
+    setTimeout(() => successToast.classList.remove('show'), 2000);
 }
 
 // ========================
@@ -91,63 +94,51 @@ function updateTranslateButtonState() {
 }
 
 // ========================
-// TRANSLATE — отправляет code + source + target на сервер
+// TRANSLATE
 // ========================
 async function translateText() {
     if (translateBtn.disabled) return;
 
-    // Собираем JSON для сервера
     const payload = {
-        source: sourceLanguage,   // например "kt"
-        target: targetLanguage,   // например "cpp"
+        source: sourceLanguage,
+        target: targetLanguage,
         code: leftTextarea.value
     };
 
-    // Лёгкая анимация нажатия кнопки
     translateBtn.style.transform = 'scale(0.97)';
     setTimeout(() => { translateBtn.style.transform = ''; }, 120);
 
     try {
-        // !!! СЮДА ВСТАВЛЯЙТЕ ССЫЛКУ, КОТОРУЮ ВАМ ДАЕТ LOCALTUNNEL !!!
-        // Обязательно добавьте /translate в конец адреса
         const tunnelUrl = 'https://mkn-kotlin-compiler.loca.lt/translate';
-        // const tunnelUrl = 'http://localhost:5000/translate'; // для локального тестирования
+        // const tunnelUrl = 'http://localhost:5000/translate';
 
         const response = await fetch(tunnelUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // Этот заголовок заставляет localtunnel пропускать встроенную заглушку
                 'Bypass-Tunnel-Reminder': 'true'
             },
             body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
-            // Если сервер вернул ошибку (например, BadRequest при ошибке синтаксиса)
             const errorData = await response.json();
             throw new Error(errorData.error || 'Ошибка компиляции');
         }
 
         const data = await response.json();
 
-        // Записываем полученный код в правое поле
         rightTextarea.value = data.cppCode;
 
-        // Сохраняем дерево разбора и включаем кнопку View Tree
         lastTreeData = data.tree || null;
         viewTreeBtn.disabled = !lastTreeData;
 
     } catch (error) {
         console.error("Ошибка трансляции:", error);
-
-        // Выводим ошибку в правое поле, чтобы пользователь понял, что пошло не так
         rightTextarea.value = `/* \n[ОШИБКА ТРАНСЛЯЦИИ]\nНе удалось связаться с сервером или парсер ANTLR обнаружил ошибку:\n${error.message}\n*/`;
-
         lastTreeData = null;
         viewTreeBtn.disabled = true;
     } finally {
-        // Если функция autoResize определена где-то ещё — вызовется, иначе пропустится
         if (typeof autoResize === 'function') autoResize(rightTextarea);
     }
 }
@@ -171,9 +162,7 @@ function triggerDownload() {
     fileName = fileName.replace(/[^a-zA-Z0-9_\-]/g, '_');
     if (fileName.length === 0) fileName = 'downloaded_file';
 
-    // Расширение зависит от выбранного целевого языка
-    const ext = LANGUAGES[targetLanguage]?.ext || '.txt';
-    const fullFileName = `${fileName}${ext}`;
+    const fullFileName = `${fileName}${TARGET_EXT}`;
 
     let contentToSave = rightTextarea.value;
     if (contentToSave.trim() === '') {
@@ -261,9 +250,7 @@ function setupManualResize(textarea, otherTextarea, sideName) {
         e.preventDefault();
         e.stopPropagation();
 
-        console.log(sideName + ': Mouse DOWN');
         isManualResizing = true;
-
         const startY = e.clientY;
         const startHeight = textarea.offsetHeight;
 
@@ -275,8 +262,6 @@ function setupManualResize(textarea, otherTextarea, sideName) {
             const maxHeight = 800;
             newHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
 
-            console.log(sideName + ': newHeight = ' + newHeight);
-
             textarea.style.height = newHeight + 'px';
             textarea.style.overflowY = 'auto';
             otherTextarea.style.height = newHeight + 'px';
@@ -284,7 +269,6 @@ function setupManualResize(textarea, otherTextarea, sideName) {
         }
 
         function onMouseUp() {
-            console.log(sideName + ': Mouse UP');
             isManualResizing = false;
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
@@ -293,27 +277,22 @@ function setupManualResize(textarea, otherTextarea, sideName) {
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
     });
-
-    console.log(sideName + ': Ресайз настроен (синхронный)');
 }
 
 // ========================
-// МОДАЛЬНОЕ ОКНО ВЫБОРА ЯЗЫКА
+// МОДАЛЬНОЕ ОКНО ВЫБОРА ИСХОДНОГО ЯЗЫКА
 // ========================
 function renderLanguageList() {
     languageList.innerHTML = '';
 
-    const allowed = AVAILABLE_LANGUAGES[languageModalTarget] || [];
-    const activeLang = languageModalTarget === 'source' ? sourceLanguage : targetLanguage;
-
-    allowed.forEach(code => {
+    AVAILABLE_SOURCE_LANGS.forEach(code => {
         const info = LANGUAGES[code];
         if (!info) return;
 
         const btn = document.createElement('button');
         btn.className = 'language-option';
         btn.dataset.lang = code;
-        if (code === activeLang) btn.classList.add('active');
+        if (code === sourceLanguage) btn.classList.add('active');
 
         btn.innerHTML = `
             <span class="lang-flag">${info.flag}</span>
@@ -324,68 +303,49 @@ function renderLanguageList() {
     });
 }
 
-function openLanguageModal(side) {
-    languageModalTarget = side;
-    languageModalTitle.textContent = side === 'source'
-        ? '🌐 Source language'
-        : '🌐 Target language';
+function openLanguageModal() {
+    languageModalTitle.textContent = '🌐 Source language';
     renderLanguageList();
     languageModal.classList.add('show');
 }
 
 function closeLanguageModal() {
     languageModal.classList.remove('show');
-    languageModalTarget = null;
 }
 
-function applyLanguage(side, langCode) {
-    if (!AVAILABLE_LANGUAGES[side]?.includes(langCode)) return;
+function applySourceLanguage(langCode) {
+    if (!AVAILABLE_SOURCE_LANGS.includes(langCode)) return;
     if (!LANGUAGES[langCode]) return;
 
-    if (side === 'source') {
-        sourceLanguage = langCode;
-        leftLangName.textContent = LANGUAGES[langCode].name;
-    } else if (side === 'target') {
-        targetLanguage = langCode;
-        rightLangName.textContent = LANGUAGES[langCode].name;
+    sourceLanguage = langCode;
+    leftLangName.textContent = LANGUAGES[langCode].name;
 
-        // Обновляем плейсхолдер правого поля — расширение могло измениться
-        const ext = LANGUAGES[langCode].ext;
-        rightTextarea.placeholder =
-            `Translated code appears here...\nYou can also edit this field manually.\nClick Download to save this as ${ext} file.`;
-    }
-
-    console.log('Current languages (ready for JSON):', {
-        source: sourceLanguage,
-        target: targetLanguage
-    });
+    // Смена исходного языка автоматически меняет тему
+    const themeForLang = LANGUAGES[langCode].theme;
+    if (themeForLang && THEMES[themeForLang]) applyTheme(themeForLang);
 }
 
-// Обработчики модального окна
 closeLanguageModalBtn.addEventListener('click', closeLanguageModal);
 cancelLanguageModalBtn.addEventListener('click', closeLanguageModal);
 languageModal.addEventListener('click', (e) => {
     if (e.target === languageModal) closeLanguageModal();
 });
+
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && languageModal.classList.contains('show')) {
         closeLanguageModal();
     }
 });
 
-// Клик по языку в списке
 languageList.addEventListener('click', (e) => {
     const option = e.target.closest('.language-option');
-    if (!option || !languageModalTarget) return;
-    const lang = option.dataset.lang;
-    const side = languageModalTarget;
-    applyLanguage(side, lang);
+    if (!option) return;
+    applySourceLanguage(option.dataset.lang);
     closeLanguageModal();
 });
 
-// Открытие модалки по клику на заголовки панелей
-leftLangBtn.addEventListener('click', () => openLanguageModal('source'));
-rightLangBtn.addEventListener('click', () => openLanguageModal('target'));
+// Только ЛЕВАЯ панель открывает модалку
+leftLangBtn.addEventListener('click', openLanguageModal);
 
 // ========================
 // ОБРАБОТЧИКИ КНОПОК
@@ -409,8 +369,6 @@ loadFileBtn.addEventListener('click', () => {
     fileInput.click();
 });
 
-loadArchiveBtn.addEventListener('click', showInProgressMessage);
-
 translateBtn.addEventListener('click', () => {
     if (!translateBtn.disabled) translateText();
 });
@@ -421,7 +379,6 @@ viewTreeBtn.addEventListener('click', () => {
 
 downloadBtn.addEventListener('click', openFilenameModal);
 
-// Модальное окно сохранения
 closeModalBtn.addEventListener('click', closeModal);
 cancelModalBtn.addEventListener('click', closeModal);
 submitFilenameBtn.addEventListener('click', triggerDownload);
@@ -443,9 +400,7 @@ leftTextarea.addEventListener('input', () => {
 });
 
 leftTextarea.addEventListener('paste', () => {
-    setTimeout(() => {
-        updateTranslateButtonState();
-    }, 10);
+    setTimeout(updateTranslateButtonState, 10);
 });
 
 // ========================
@@ -461,6 +416,10 @@ window.addEventListener('resize', () => {
 function init() {
     console.log('Инициализация...');
 
+    // Тема по текущему исходному языку
+    const initialTheme = LANGUAGES[sourceLanguage]?.theme || 'kotlin';
+    applyTheme(initialTheme);
+
     const optimalHeight = calculateOptimalHeight();
     setBothTextareasHeight(optimalHeight);
 
@@ -469,17 +428,14 @@ function init() {
 
     updateTranslateButtonState();
 
-    // Стартовые названия языков в заголовках панелей
     leftLangName.textContent = LANGUAGES[sourceLanguage].name;
-    rightLangName.textContent = LANGUAGES[targetLanguage].name;
 
-    // Скрываем оверлеи
     progressToast.classList.remove('show');
     successToast.classList.remove('show');
     modal.classList.remove('show');
     languageModal.classList.remove('show');
 
-    console.log('Готово. Языки:', { source: sourceLanguage, target: targetLanguage });
+    console.log('Готово. Source:', sourceLanguage, '→ Target:', targetLanguage, '| Theme:', initialTheme);
 }
 
 document.addEventListener('DOMContentLoaded', init);

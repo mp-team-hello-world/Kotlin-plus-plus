@@ -1,3 +1,43 @@
+/* ============================================
+   THEME VARIABLES
+   ============================================ */
+:root,
+html[data-theme="kotlin"] {
+    --accent:        #3b82f6;
+    --accent-hover:  #2563eb;
+    --accent-soft:   #eff6ff;
+    --accent-soft-2: #dbeafe;
+    --accent-ring:   rgba(59, 130, 246, 0.10);
+    --accent-shadow: rgba(59, 130, 246, 0.40);
+    --accent-dot:    #3b82f6;
+    --accent-text:   #1e3a8a;
+}
+
+html[data-theme="sharp"] {
+    --accent:        #f97316;
+    --accent-hover:  #ea580c;
+    --accent-soft:   #fff7ed;
+    --accent-soft-2: #ffedd5;
+    --accent-ring:   rgba(249, 115, 22, 0.12);
+    --accent-shadow: rgba(249, 115, 22, 0.40);
+    --accent-dot:    #f97316;
+    --accent-text:   #7c2d12;
+}
+
+html[data-theme="python"] {
+    --accent:        #10b981;
+    --accent-hover:  #059669;
+    --accent-soft:   #ecfdf5;
+    --accent-soft-2: #d1fae5;
+    --accent-ring:   rgba(16, 185, 129, 0.12);
+    --accent-shadow: rgba(16, 185, 129, 0.40);
+    --accent-dot:    #10b981;
+    --accent-text:   #065f46;
+}
+
+/* ============================================
+   RESET
+   ============================================ */
 * {
     margin: 0;
     padding: 0;
@@ -21,17 +61,23 @@ body {
     font-size: 42px;
     font-weight: 800;
     text-transform: uppercase;
-    color: #0a0f1c;
     margin-bottom: 40px;
     text-align: left;
     letter-spacing: -0.5px;
-    border-left: 5px solid #3b82f6;
+    border-left: 5px solid var(--accent);
     padding-left: 24px;
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     background-clip: text;
     -webkit-background-clip: text;
     color: #0f172a;
     text-shadow: none;
+    cursor: pointer;
+    transition: border-color 0.25s ease, transform 0.2s ease;
+    user-select: none;
+}
+
+.header-title:hover {
+    transform: translateX(2px);
 }
 
 .buttons-row {
@@ -49,7 +95,7 @@ body {
     border: none;
     border-radius: 60px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
     background: white;
     color: #1e293b;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
@@ -59,28 +105,18 @@ body {
 }
 
 .btn:hover:not(:disabled) {
-    background: #3b82f6;
+    background: var(--accent);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px -8px rgba(59,130,246,0.4);
-    border-color: #3b82f6;
+    box-shadow: 0 10px 20px -8px var(--accent-shadow);
+    border-color: var(--accent);
 }
 
 .btn:active:not(:disabled) {
     transform: translateY(1px);
 }
 
-.btn-translate:disabled {
-    background: #e2e8f0;
-    color: #94a3b8;
-    cursor: not-allowed;
-    opacity: 0.7;
-    transform: none;
-    box-shadow: none;
-    border-color: #cbd5e1;
-}
-
-/* Общий disabled-стиль для остальных кнопок (View Tree и т.д.) */
+.btn-translate:disabled,
 .btn:disabled {
     background: #e2e8f0;
     color: #94a3b8;
@@ -166,14 +202,14 @@ body {
 }
 
 .resize-handle:hover {
-    background-color: #3b82f6;
+    background-color: var(--accent);
     opacity: 1;
     height: 5px;
     bottom: 3.5px;
 }
 
 .resize-handle:active {
-    background-color: #2563eb;
+    background-color: var(--accent-hover);
 }
 
 .toast-notification {
@@ -328,8 +364,8 @@ body {
 
 .filename-input:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 .modal-hint {
@@ -369,14 +405,14 @@ body {
 }
 
 .submit-btn {
-    background: #3b82f6;
+    background: var(--accent);
     color: white;
 }
 
 .submit-btn:hover {
-    background: #2563eb;
+    background: var(--accent-hover);
     transform: translateY(-1px);
-    box-shadow: 0 6px 14px rgba(59,130,246,0.3);
+    box-shadow: 0 6px 14px var(--accent-shadow);
 }
 
 @media (max-width: 768px) {
@@ -480,11 +516,11 @@ body {
 }
 
 .tree-tool-btn:hover {
-    background: #3b82f6;
+    background: var(--accent);
     color: white;
-    border-color: #3b82f6;
+    border-color: var(--accent);
     transform: translateY(-1px);
-    box-shadow: 0 8px 16px -8px rgba(59,130,246,0.4);
+    box-shadow: 0 8px 16px -8px var(--accent-shadow);
 }
 
 .tree-legend {
@@ -562,7 +598,7 @@ body {
     transition: stroke .15s, filter .15s;
 }
 .tree-node.rule rect { fill: #eff6ff; stroke: #93c5fd; }
-.tree-node.rule:hover rect { stroke: #3b82f6; filter: brightness(1.03); }
+.tree-node.rule:hover rect { stroke: var(--accent); filter: brightness(1.03); }
 .tree-node.token rect { fill: #ecfdf5; stroke: #6ee7b7; }
 .tree-node.token:hover rect { stroke: #10b981; filter: brightness(1.03); }
 
@@ -572,7 +608,7 @@ body {
     font-family: 'Inter', system-ui, sans-serif;
     font-weight: 500;
     font-size: 13px;
-    fill: #1e3a8a;
+    fill: var(--accent-text);
 }
 .tree-node.token text {
     font-family: 'SF Mono', 'Fira Code', monospace;
@@ -587,12 +623,10 @@ body {
 
 .tree-node.selected rect {
     stroke-width: 3px;
-    filter: drop-shadow(0 0 0 rgba(59,130,246,0));
 }
-.tree-node.rule.selected rect { stroke: #3b82f6; }
+.tree-node.rule.selected rect { stroke: var(--accent); }
 .tree-node.token.selected rect { stroke: #10b981; }
 
-/* Компактная карточка с кодом узла — всплывает по ПКМ рядом с курсором */
 .node-code-panel {
     position: fixed;
     top: 0;
@@ -711,16 +745,16 @@ body {
 }
 
 .language-option:hover {
-    border-color: #3b82f6;
-    background: #eff6ff;
+    border-color: var(--accent);
+    background: var(--accent-soft);
     transform: translateY(-1px);
-    box-shadow: 0 6px 14px -6px rgba(59,130,246,0.3);
+    box-shadow: 0 6px 14px -6px var(--accent-shadow);
 }
 
 .language-option.active {
-    border-color: #3b82f6;
-    background: #eff6ff;
-    box-shadow: 0 0 0 1px #3b82f6 inset;
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    box-shadow: 0 0 0 1px var(--accent) inset;
 }
 
 .lang-flag {
@@ -734,7 +768,7 @@ body {
 
 .lang-check {
     opacity: 0;
-    color: #3b82f6;
+    color: var(--accent);
     font-weight: 800;
     font-size: 16px;
     transition: opacity 0.15s ease;
@@ -745,8 +779,10 @@ body {
 }
 
 /* ============================
-   CLICKABLE PANEL HEADERS
+   PANEL HEADERS
    ============================ */
+
+/* Кликабельный заголовок (левая панель) */
 .panel-header-btn {
     display: flex;
     justify-content: space-between;
@@ -769,16 +805,16 @@ body {
 }
 
 .panel-header-btn:hover {
-    background: #eff6ff;
-    color: #2563eb;
+    background: var(--accent-soft);
+    color: var(--accent-hover);
 }
 
 .panel-header-btn:active {
-    background: #dbeafe;
+    background: var(--accent-soft-2);
 }
 
 .panel-header-btn:focus-visible {
-    outline: 2px solid #3b82f6;
+    outline: 2px solid var(--accent);
     outline-offset: -2px;
 }
 
@@ -797,4 +833,23 @@ body {
 .panel-header-btn:hover .panel-header-arrow {
     opacity: 1;
     transform: translateY(1px);
+}
+
+/* Статичный заголовок (правая панель — всегда C++) */
+.panel-header-static {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    background: transparent;
+    border-bottom: 2px solid #f1f5f9;
+    padding: 18px 24px 14px 24px;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #5b6e8c;
+    font-family: 'Inter', monospace;
+    cursor: default;
+    user-select: none;
 }
