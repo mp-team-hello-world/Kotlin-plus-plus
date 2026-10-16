@@ -19,6 +19,7 @@ public static class Translator
     public static (string TargetCode, TreeNodeDto Tree) TranslateWithTree(string code, string from, string to)
     {
         var strategy = TranslationFactory.GetStrategy(from, to);
-        return strategy.Translate(code);
+        var result = strategy.Translate(code);
+        return result;
     }
 }

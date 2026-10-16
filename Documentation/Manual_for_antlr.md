@@ -23,6 +23,10 @@ dotnet add package Antlr4.Runtime.Standard
 ```bash
 java -jar ..\antlr\antlr-4.13.2-complete.jar -Dlanguage=CSharp KotlinGrammatic\KotlinLexer.g4
 java -jar ..\antlr\antlr-4.13.2-complete.jar -Dlanguage=CSharp -visitor KotlinGrammatic\KotlinParser.g4
+java -jar ..\antlr\antlr-4.13.2-complete.jar -Dlanguage=CSharp .\PythonGrammatic\PythonLexer.g4
+java -jar ..\antlr\antlr-4.13.2-complete.jar -Dlanguage=CSharp -visitor .\PythonGrammatic\PythonParser.g4
+java -jar ..\antlr\antlr-4.13.2-complete.jar -Dlanguage=CSharp .\CSharpGrammatic\CSharpLexer.g4
+java -jar ..\antlr\antlr-4.13.2-complete.jar -Dlanguage=CSharp -visitor .\CSharpGrammatic\CSharpParser.g4
 ```
 
 Обратно в репозиторий все нагенерированные файлы добавлять не надо 
